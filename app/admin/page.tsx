@@ -1,159 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-export default function AdminPage() {
-  const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [price, setPrice] = useState("");
-  const [listingType, setListingType] = useState("buy");
-  const [description, setDescription] = useState("");
-  const [bedrooms, setBedrooms] = useState("");
-  const [bathrooms, setBathrooms] = useState("");
-  const [area, setArea] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [message, setMessage] = useState("");
+export default function AdminListingsPage() {
+  const [properties, setProperties] = useState<any[]>([]);
 
-  const addProperty = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function fetchProperties() {
+    const { data } = await supabase
+      .from("properties")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    if (!file) {
-      setMessage("Please select an image");
-      return;
-    }
+    if (data) setProperties(data);
+  }
 
-    const fileName = `${Date.now()}-${file.name}`;
+  async function toggleStatus(id: string, current: string) {
+    await supabase
+      .from("properties")
+      .update({
+        status: current === "live" ? "draft" : "live",
+      })
+      .eq("id", id);
 
-    const { error: uploadError } = await supabase.storage
-      .from("property-images")
-      .upload(fileName, file);
+    fetchProperties();
+  }
 
-    if (uploadError) {
-      setMessage(uploadError.message);
-      return;
-    }
+  async function deleteProperty(id: string) {
+    await supabase.from("properties").delete().eq("id", id);
+    fetchProperties();
+  }
 
-    const { data } = supabase.storage
-      .from("property-images")
-      .getPublicUrl(fileName);
-
-    const imageUrl = data.publicUrl;
-
-    const { error } = await supabase.from("properties").insert({
-      title,
-      location,
-      price: Number(price),
-      listing_type: listingType,
-      description,
-      bedrooms: Number(bedrooms),
-      bathrooms: Number(bathrooms),
-      area: Number(area),
-      image_url: imageUrl,
-    });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage("Property added successfully!");
-
-    setTitle("");
-    setLocation("");
-    setPrice("");
-    setListingType("buy");
-    setDescription("");
-    setBedrooms("");
-    setBathrooms("");
-    setArea("");
-    setFile(null);
-  };
+  useEffect(() => {
+    fetchProperties();
+  }, []);
 
   return (
-    <main className="min-h-screen max-w-2xl mx-auto p-8">
-      <h1 className="text-4xl font-bold mb-8">Admin Upload</h1>
+    <div className="max-w-6xl mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8">Manage Listings</h1>
 
-      <form onSubmit={addProperty} className="space-y-4">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          className="w-full border p-3 rounded"
-          required
-        />
+      <div className="space-y-4">
+        {properties.map((property) => (
+          <div
+            key={property.id}
+            className="border rounded-xl p-5 flex justify-between items-center"
+          >
+            <div>
+              <h2 className="font-bold text-xl">{property.title}</h2>
+              <p>{property.location}</p>
+              <p className="font-semibold">
+                ETB {property.price?.toLocaleString()}
+              </p>
+              <span
+                className={`px-3 py-1 rounded-full text-sm ${
+                  property.status === "live"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {property.status}
+              </span>
+            </div>
 
-        <input
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Location"
-          className="w-full border p-3 rounded"
-          required
-        />
+            <div className="flex gap-3">
+              <button
+                onClick={() =>
+                  toggleStatus(property.id, property.status)
+                }
+                className="bg-black text-white px-4 py-2 rounded-lg"
+              >
+                {property.status === "live" ? "Hide" : "Publish"}
+              </button>
 
-        <input
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="Price"
-          className="w-full border p-3 rounded"
-          required
-        />
-
-        <select
-          value={listingType}
-          onChange={(e) => setListingType(e.target.value)}
-          className="w-full border p-3 rounded"
-        >
-          <option value="buy">Buy</option>
-          <option value="rent">Rent</option>
-        </select>
-
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          className="w-full border p-3 rounded"
-        />
-
-        <input
-          type="number"
-          value={bedrooms}
-          onChange={(e) => setBedrooms(e.target.value)}
-          placeholder="Bedrooms"
-          className="w-full border p-3 rounded"
-        />
-
-        <input
-          type="number"
-          value={bathrooms}
-          onChange={(e) => setBathrooms(e.target.value)}
-          placeholder="Bathrooms"
-          className="w-full border p-3 rounded"
-        />
-
-        <input
-          type="number"
-          value={area}
-          onChange={(e) => setArea(e.target.value)}
-          placeholder="Area (sqm)"
-          className="w-full border p-3 rounded"
-        />
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="w-full border p-3 rounded"
-          required
-        />
-
-        <button className="w-full bg-black text-white p-3 rounded">
-          Add Property
-        </button>
-      </form>
-
-      {message && <p className="mt-4">{message}</p>}
-    </main>
+              <button
+                onClick={() => deleteProperty(property.id)}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
