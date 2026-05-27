@@ -9,6 +9,12 @@ export default function AdminPage() {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [type, setType] = useState("buy");
+const [category, setCategory] = useState("Apartment");
+const [bedrooms, setBedrooms] = useState(1);
+const [bathrooms, setBathrooms] = useState(1);
+const [area, setArea] = useState(0);
+const [featured, setFeatured] = useState(false);
+const [status, setStatus] = useState("live");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,16 +46,21 @@ export default function AdminPage() {
     }
 
     const { error } = await supabase.from("properties").insert([
-   {
-  title,
-  location,
-  price: Number(price),
-  listing_type: type,
-  description,
-  image_url: imageUrl,
-  status: "live",
-}
-    ]);
+  {
+    title,
+    location,
+    price,
+    listing_type: type,
+    category,
+    bedrooms,
+    bathrooms,
+    area,
+    featured,
+    status,
+    description,
+    image_url
+  }
+]);
 
     if (error) {
       alert("Failed to add property");
@@ -93,6 +104,36 @@ export default function AdminPage() {
           placeholder="Property Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          <textarea
+  placeholder="Description"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  className="w-full p-3 border rounded mb-4"
+ />
+
+<input
+  type="number"
+  placeholder="Bedrooms"
+  value={bedrooms}
+  onChange={(e) => setBedrooms(e.target.value)}
+  className="w-full p-3 border rounded mb-4"
+/>
+
+<input
+  type="number"
+  placeholder="Bathrooms"
+  value={bathrooms}
+  onChange={(e) => setBathrooms(e.target.value)}
+  className="w-full p-3 border rounded mb-4"
+/>
+
+<input
+  type="number"
+  placeholder="Square Meters"
+  value={sqm}
+  onChange={(e) => setSqm(e.target.value)}
+  className="w-full p-3 border rounded mb-4"
+/>
           className="w-full border p-3 rounded-lg"
           required
         />
