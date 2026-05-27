@@ -1,0 +1,39 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+export default function Dashboard() {
+  const [stats, setStats] = useState({
+    total: 0,
+    live: 0,
+    hidden: 0,
+    featured: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  async function fetchStats() {
+    const { data } = await supabase
+      .from("properties")
+      .select("*");
+
+    setStats({
+      total: data.length,
+      live: data.filter(p => p.status === "live").length,
+      hidden: data.filter(p => p.status === "hidden").length,
+      featured: data.filter(p => p.featured).length
+    });
+  }
+
+  return (
+    <div className="grid grid-cols-4 gap-4 p-8">
+      <div>Total: {stats.total}</div>
+      <div>Live: {stats.live}</div>
+      <div>Hidden: {stats.hidden}</div>
+      <div>Featured: {stats.featured}</div>
+    </div>
+  );
+}

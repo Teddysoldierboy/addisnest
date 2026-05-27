@@ -14,6 +14,10 @@ export default function AdminListingsPage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Inline editing state tracking handles settings safely
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<any>({});
+
   // Fetch all properties when the page loads
   useEffect(() => {
     fetchProperties();
@@ -32,6 +36,27 @@ export default function AdminListingsPage() {
       setProperties(data || []);
     }
     setLoading(false);
+  }
+
+  // Update inline property text values and specifications
+  async function updateListing(id: string) {
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        title: editData.title,
+        listing_type: editData.listing_type,
+        price: Number(editData.price) // Guarantees database numeric type validation
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert(`Failed to save adjustments: ${error.message}`);
+      return;
+    }
+
+    alert("Listing updated successfully!");
+    setEditingId(null);
+    fetchProperties();
   }
 
   // Toggle status between 'live' and 'hidden'
@@ -117,10 +142,52 @@ export default function AdminListingsPage() {
                   )}
                 </td>
 
-                {/* Text Details */}
-                <td className="p-4 font-medium">{property.title}</td>
-                <td className="p-4 capitalize">{property.listing_type}</td>
-                <td className="p-4">{Number(property.price).toLocaleString()} ETB</td>
+                {/* Inline Editable Title Details */}
+                <td className="p-4 font-medium">
+                  {editingId === property.id ? (
+                    <input
+                      type="text"
+                      value={editData.title || ""}
+                      onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                      className="border p-2 rounded w-full max-w-xs focus:outline-none focus:ring-1 focus:ring-black"
+                    />
+                  ) : (
+                    property.title
+                  )}
+                </td>
+
+                {/* Inline Editable Deal Listing Type */}
+                <td className="p-4 capitalize">
+                  {editingId === property.id ? (
+                    <select
+                      value={editData.listing_type || "buy"}
+                      onChange={(e) => setEditData({ ...editData, listing_type: e.target.value })}
+                      className="border p-2 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                    >
+                      <option value="buy">Buy</option>
+                      <option value="rent">Rent</option>
+                    </select>
+                  ) : (
+                    property.listing_type
+                  )}
+                </td>
+
+                {/* Inline Editable Price Numerical Core */}
+                <td className="p-4">
+                  {editingId === property.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={editData.price || ""}
+                        onChange={(e) => setEditData({ ...editData, price: e.target.value })}
+                        className="border p-2 rounded w-28 focus:outline-none focus:ring-1 focus:ring-black"
+                      />
+                      <span className="text-sm text-gray-500">ETB</span>
+                    </div>
+                  ) : (
+                    `${Number(property.price).toLocaleString()} ETB`
+                  )}
+                </td>
                 
                 {/* Spotlight Status */}
                 <td className="p-4">
@@ -142,36 +209,55 @@ export default function AdminListingsPage() {
                   </span>
                 </td>
 
-                {/* Interactive Action Control Row */}
+                {/* Alternating Action Controls Row */}
                 <td className="p-4">
                   <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={() => router.push(`/admin/edit/${property.id}`)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() => toggleStatus(property.id, property.status)}
-                      className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors"
-                    >
-                      {property.status === "hidden" ? "Show" : "Hide"}
-                    </button>
-
-                    <button
-                      onClick={() => toggleFeatured(property.id, property.featured)}
-                      className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition-colors"
-                    >
-                      {property.featured ? "Unfeature" : "Feature"}
-                    </button>
-
-                    <button
-                      onClick={() => deleteProperty(property.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
-                    >
-                      Delete
-                    </button>
+                    {editingId === property.id ? (
+                      <>
+                        <button
+                          onClick={() => updateListing(property.id)}
+                          className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingId(property.id);
+                            setEditData(property);
+                          }}
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => toggleStatus(property.id, property.status)}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors"
+                        >
+                          {property.status === "hidden" ? "Show" : "Hide"}
+                        </button>
+                        <button
+                          onClick={() => toggleFeatured(property.id, property.featured)}
+                          className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition-colors"
+                        >
+                          {property.featured ? "Unfeature" : "Feature"}
+                        </button>
+                        <button
+                          onClick={() => deleteProperty(property.id)}
+                          className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
