@@ -8,7 +8,7 @@ export default function AdminPage() {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
-  const [listing_type: type, setType] = useState("buy");
+  const [type, setType] = useState("buy");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
