@@ -98,7 +98,7 @@ export default function AdminListingsPage() {
                   )}
                 </td>
                 <td className="p-4 font-medium">{property.title}</td>
-                <td className="p-4 capitalize">{property.type}</td>
+                <td className="p-4 capitalize">{property.listing_type}</td>
                 <td className="p-4">{property.price}</td>
                 <td className="p-4">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${

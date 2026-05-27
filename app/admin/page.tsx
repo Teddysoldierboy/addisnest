@@ -8,7 +8,7 @@ export default function AdminPage() {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
-  const [type, setType] = useState("buy");
+  const [listing_type: type, setType] = useState("buy");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,15 +40,15 @@ export default function AdminPage() {
     }
 
     const { error } = await supabase.from("properties").insert([
-      {
-        title,
-        location,
-        price: Number(price),
-        type,
-        description,
-        image_url: imageUrl,
-        status: "live",
-      },
+   {
+  title,
+  location,
+  price: Number(price),
+  listing_type: type,
+  description,
+  image_url: imageUrl,
+  status: "live",
+}
     ]);
 
     if (error) {
