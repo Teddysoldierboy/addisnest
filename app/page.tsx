@@ -6,8 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function HomePage() {
-  const [listings, setListings] = useState([]);
-  const [filtered, setFiltered] = useState([]);
+  const [listings, setListings] = useState<any[]>([]);
+  const [filtered, setFiltered] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortPrice, setSortPrice] = useState("default");
@@ -17,43 +17,55 @@ export default function HomePage() {
   }, []);
 
   async function fetchListings() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("listings")
-      .select("*")
-      .eq("status", "live");
+      .select("*");
 
-    setListings(data || []);
-    setFiltered(data || []);
+    if (!error && data) {
+      setListings(data);
+      setFiltered(data);
+    }
   }
 
   useEffect(() => {
     let result = [...listings];
 
-    if (search) {
-      result = result.filter((listing: any) =>
-        listing.location
+    // Search
+    if (search.trim()) {
+      result = result.filter((listing) =>
+        (
+          listing.title +
+          " " +
+          listing.location
+        )
           .toLowerCase()
           .includes(search.toLowerCase())
       );
     }
 
+    // Buy/Rent filter
     if (typeFilter !== "all") {
       result = result.filter(
-        (listing: any) => listing.type === typeFilter
+        (listing) =>
+          listing.type?.toLowerCase() ===
+          typeFilter.toLowerCase()
       );
     }
 
+    // Price sorting
     if (sortPrice === "low") {
       result.sort(
-        (a: any, b: any) =>
-          Number(a.price) - Number(b.price)
+        (a, b) =>
+          parseFloat(a.price || 0) -
+          parseFloat(b.price || 0)
       );
     }
 
     if (sortPrice === "high") {
       result.sort(
-        (a: any, b: any) =>
-          Number(b.price) - Number(a.price)
+        (a, b) =>
+          parseFloat(b.price || 0) -
+          parseFloat(a.price || 0)
       );
     }
 
@@ -69,7 +81,7 @@ export default function HomePage() {
       <div className="flex gap-4 mb-8 flex-wrap">
         <input
           type="text"
-          placeholder="Search by location"
+          placeholder="Search title or location"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border p-3 rounded"
@@ -77,7 +89,9 @@ export default function HomePage() {
 
         <select
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
+          onChange={(e) =>
+            setTypeFilter(e.target.value)
+          }
           className="border p-3 rounded"
         >
           <option value="all">All</option>
@@ -87,22 +101,24 @@ export default function HomePage() {
 
         <select
           value={sortPrice}
-          onChange={(e) => setSortPrice(e.target.value)}
+          onChange={(e) =>
+            setSortPrice(e.target.value)
+          }
           className="border p-3 rounded"
         >
-          <option value="default">Sort by Price</option>
+          <option value="default">Sort Price</option>
           <option value="low">Low → High</option>
           <option value="high">High → Low</option>
         </select>
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
-        {filtered.map((listing: any) => (
+        {filtered.map((listing) => (
           <Link
             key={listing.id}
             href={`/property/${listing.id}`}
           >
-            <div className="border rounded-xl overflow-hidden shadow hover:shadow-lg transition cursor-pointer">
+            <div className="border rounded-xl overflow-hidden shadow hover:shadow-lg cursor-pointer">
               <Image
                 src={listing.image_url}
                 alt={listing.title}
@@ -116,15 +132,13 @@ export default function HomePage() {
                   {listing.title}
                 </h2>
 
-                <p className="text-gray-500">
-                  {listing.location}
-                </p>
+                <p>{listing.location}</p>
 
-                <p className="mt-2 font-semibold">
+                <p className="font-semibold mt-2">
                   ETB {listing.price}
                 </p>
 
-                <span className="inline-block mt-3 bg-black text-white px-3 py-1 rounded">
+                <span className="inline-block mt-2 bg-black text-white px-3 py-1 rounded">
                   {listing.type}
                 </span>
               </div>
