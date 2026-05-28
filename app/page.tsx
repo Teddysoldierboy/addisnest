@@ -21,24 +21,38 @@ export default function HomePage() {
     setLoading(true);
     setDatabaseError(null);
 
-    // Connected to your accurate table: "properties"
-    const { data, error } = await supabase
-      .from("properties")
-      .select("*");
+    try {
+      // 1. Try fetching from the standard "properties" table
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*");
 
-    if (error) {
-      console.error("Supabase Fetch Error:", error);
-      setDatabaseError(error.message);
-    } else {
-      // Gracefully filter out drafts so users only see live listings
-      const liveItems = (data || []).filter(item => item.status !== "hidden" && item.status !== "draft");
-      setListings(liveItems);
-      setFiltered(liveItems);
+      if (error) {
+        console.warn("Targeting 'properties' table failed, trying 'listings' fallback...", error);
+        
+        // 2. Automated fallback: Try fetching from "listings" table if "properties" doesn't exist
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("listings")
+          .select("*");
+
+        if (fallbackError) {
+          setDatabaseError(`Supabase could not find 'properties' or 'listings' tables. Error: ${fallbackError.message}`);
+        } else {
+          setListings(fallbackData || []);
+          setFiltered(fallbackData || []);
+        }
+      } else {
+        setListings(data || []);
+        setFiltered(data || []);
+      }
+    } catch (err: any) {
+      setDatabaseError(err.message || "An unexpected connection error occurred.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  // Helper utility to safely convert any text-based or clean price to a working number
+  // Safe numerical clean utility strips text artifacts (like commas, spaces, letters)
   const parseNumericPrice = (value: any): number => {
     if (value === null || value === undefined) return 0;
     const cleaned = String(value).replace(/[^0-9.]/g, "");
@@ -49,7 +63,7 @@ export default function HomePage() {
   useEffect(() => {
     let result = [...listings];
 
-    // 1. Live Search across Title and Location fields
+    // 1. Title + Location Live Search Filter
     if (search.trim()) {
       const query = search.toLowerCase().trim();
       result = result.filter(
@@ -59,20 +73,15 @@ export default function HomePage() {
       );
     }
 
-    // 2. Buy/Rent filter looking at both fallback columns 'listing_type' and 'type'
+    // 2. Buy/Rent Filter matching both potential column names 'listing_type' and 'type'
     if (typeFilter !== "all") {
-  const filterTarget = typeFilter.toLowerCase().trim();
+      const filterTarget = typeFilter.toLowerCase().trim();
+      result = result.filter((listing) => {
+        const actualType = (listing.listing_type || listing.type || "").toLowerCase().trim();
+        return actualType === filterTarget;
+      });
+    }
 
-  result = result.filter((listing) => {
-    const actualType = String(
-      listing.listing_type || listing.type || ""
-    )
-      .toLowerCase()
-      .trim();
-
-    return actualType.includes(filterTarget);
-  });
-}
     // 3. Mathematical Price Sorting Engine
     if (sortPrice === "low") {
       result.sort((a, b) => parseNumericPrice(a.price) - parseNumericPrice(b.price));
@@ -85,20 +94,20 @@ export default function HomePage() {
 
   return (
     <main className="max-w-6xl mx-auto p-4 md:p-8">
-      {/* Brand Header Section */}
+      {/* Brand Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-black text-gray-900 tracking-tight">
           AddisNest
         </h1>
         <p className="text-xs text-gray-400 font-medium tracking-wide uppercase mt-1">
-          Premium Real Estate Discovery Engine
+          Real Estate Discovery Engine
         </p>
       </div>
 
-      {/* Control Panel: PERFECT SIDE-BY-SIDE GRID BAR FOR DESKTOP */}
+      {/* Control Panel: Side-by-Side Filters */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full mb-10 bg-white p-3 rounded-2xl border border-gray-100 shadow-xs">
         
-        {/* Search Input Box */}
+        {/* Search input Box */}
         <div className="flex-1 min-w-0">
           <input
             type="text"
@@ -109,7 +118,7 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Buy / Rent Dropdown Filter */}
+        {/* Buy / Rent Dropdown Selector */}
         <div className="w-full md:w-48 shrink-0">
           <select
             value={typeFilter}
@@ -122,7 +131,7 @@ export default function HomePage() {
           </select>
         </div>
 
-        {/* Low/High Pricing Sort Dropdown */}
+        {/* Pricing Sort Dropdown Selector */}
         <div className="w-full md:w-48 shrink-0">
           <select
             value={sortPrice}
@@ -136,43 +145,43 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Error Announcement Display Box */}
+      {/* System Error Announcement Box */}
       {databaseError && (
         <div className="p-4 mb-6 text-sm text-red-700 bg-red-50 rounded-xl border border-red-100">
-          ⚠️ <strong>Database Connection Issue:</strong> {databaseError}. Please verify your table name schema parameters inside Supabase.
+          ⚠️ <strong>System Connection Error:</strong> {databaseError}
+          <p className="mt-2 text-xs text-red-600">
+            Check your project's local <code>.env.local</code> file or Vercel Environment Variables to verify your Supabase URL and Keys match.
+          </p>
         </div>
       )}
 
-      {/* Grid Content Results Viewport */}
+      {/* Main Listings Viewport */}
       {loading ? (
         <div className="text-center py-16 text-gray-400 text-sm font-medium tracking-wide">
-          Synchronizing real-time listings with Supabase cluster...
+          Syncing records with live database cluster...
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((listing) => {
             const displayPrice = parseNumericPrice(listing.price);
-            const currentType = String(
-  listing.listing_type || listing.type || "buy"
-).toLowerCase();
+            const currentType = listing.listing_type || listing.type || "buy";
             
             return (
               <Link key={listing.id} href={`/property/${listing.id}`} className="group block">
                 <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all duration-200 flex flex-col h-full justify-between">
                   
-                  {/* Visual Layout Thumbnail Wrapper */}
+                  {/* Thumbnail Cover Layout */}
                   <div className="h-48 w-full bg-gray-50 flex items-center justify-center relative overflow-hidden border-b border-gray-100">
-                    {listing.image_url ? (
+                    {listing.image_url && listing.image_url.trim() !== "" ? (
                       <img 
                         src={listing.image_url} 
                         alt={listing.title} 
                         className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-200"
                       />
                     ) : (
-                      <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">🏢 No Media Layout</span>
+                      <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">🏢 No Layout Media Provided</span>
                     )}
                     
-                    {/* Absolute Context Status Badge Overlay */}
                     <span className={`absolute top-3 left-3 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md text-white shadow-xs ${
                       String(currentType).toLowerCase() === 'rent' ? 'bg-blue-600' : 'bg-green-600'
                     }`}>
@@ -180,7 +189,7 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  {/* Info Metadata Block */}
+                  {/* Metadata Text Elements */}
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
                       <h2 className="text-lg font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors line-clamp-1">
@@ -208,10 +217,10 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Empty Search Filter Exception Fallback */}
+      {/* Empty Filter State Fallback */}
       {!loading && filtered.length === 0 && !databaseError && (
         <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 max-w-md mx-auto mt-6">
-          <p className="text-gray-400 text-sm font-medium">No properties match your active filter selections or search values right now.</p>
+          <p className="text-gray-400 text-sm font-medium">No records matching your search filters are currently available.</p>
           <button
             onClick={() => { setSearch(""); setTypeFilter("all"); setSortPrice("default"); }}
             className="mt-3 text-xs font-bold text-black underline hover:text-gray-600 transition-colors"
@@ -220,6 +229,21 @@ export default function HomePage() {
           </button>
         </div>
       )}
+
+      {/* LIVE SCHEMATIC DEBUG PANEL PANEL */}
+      <div className="mt-20 p-4 bg-gray-900 text-green-400 rounded-xl font-mono text-xs overflow-x-auto">
+        <p className="text-white border-b border-gray-700 pb-2 mb-2 font-bold">🛠️ Live Application Debugger Console</p>
+        <p>Total Items Pulled from Database: {listings.length}</p>
+        <p>Current Active Search Input Text: "{search}"</p>
+        <p>Active Listing Operation Filter: "{typeFilter}"</p>
+        <p>Active Mathematical Sorting Rule: "{sortPrice}"</p>
+        <details className="mt-4 cursor-pointer text-gray-400">
+          <summary className="text-white font-semibold hover:underline">Click to view raw database payload array json structure</summary>
+          <pre className="mt-2 bg-black p-3 rounded text-green-500 max-h-60 overflow-y-auto">
+            {JSON.stringify(listings, null, 2)}
+          </pre>
+        </details>
+      </div>
     </main>
   );
 }
