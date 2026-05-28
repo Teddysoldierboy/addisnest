@@ -61,13 +61,18 @@ export default function HomePage() {
 
     // 2. Buy/Rent filter looking at both fallback columns 'listing_type' and 'type'
     if (typeFilter !== "all") {
-      const filterTarget = typeFilter.toLowerCase().trim();
-      result = result.filter((listing) => {
-        const actualType = (listing.listing_type || listing.type || "").toLowerCase().trim();
-        return actualType === filterTarget;
-      });
-    }
+  const filterTarget = typeFilter.toLowerCase().trim();
 
+  result = result.filter((listing) => {
+    const actualType = String(
+      listing.listing_type || listing.type || ""
+    )
+      .toLowerCase()
+      .trim();
+
+    return actualType.includes(filterTarget);
+  });
+}
     // 3. Mathematical Price Sorting Engine
     if (sortPrice === "low") {
       result.sort((a, b) => parseNumericPrice(a.price) - parseNumericPrice(b.price));
@@ -147,7 +152,9 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((listing) => {
             const displayPrice = parseNumericPrice(listing.price);
-            const currentType = listing.listing_type || listing.type || "buy";
+            const currentType = String(
+  listing.listing_type || listing.type || "buy"
+).toLowerCase();
             
             return (
               <Link key={listing.id} href={`/property/${listing.id}`} className="group block">
