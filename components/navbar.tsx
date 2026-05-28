@@ -1,88 +1,63 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState } from "react"
-import { Menu, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/buy", label: "Buy" },
-  { href: "/rent", label: "Rent" },
-  { href: "/compare", label: "Compare" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-]
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname();
+
+  // Helper function to highlight the active tab dynamically
+  const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
-            </div>
-            <span className="text-xl font-semibold text-foreground">AddisNest</span>
+    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+        
+        {/* Brand Logo Identity */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <span className="text-xl font-black text-gray-900 tracking-tight group-hover:text-gray-700 transition-colors">
+            AddisNest<span className="text-blue-600">.</span>
+          </span>
+        </Link>
+
+        {/* Navigation Action Links Links */}
+        <nav className="flex items-center gap-1 md:gap-4">
+          <Link
+            href="/"
+            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+              isActive("/") 
+                ? "text-black bg-gray-50 font-semibold" 
+                : "text-gray-500 hover:text-black hover:bg-gray-50/50"
+            }`}
+          >
+            Marketplace
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary/90">
-              List Property
-            </Button>
-          </div>
-
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
+          <Link
+            href="/admin/listings"
+            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+              pathname.startsWith("/admin/listings")
+                ? "text-black bg-gray-50 font-semibold" 
+                : "text-gray-500 hover:text-black hover:bg-gray-50/50"
+            }`}
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-      </div>
+            Manage Listings
+          </Link>
 
-      {isOpen && (
-        <div className="md:hidden bg-background border-b border-border">
-          <div className="px-4 py-4 flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="flex flex-col gap-2 pt-4 border-t border-border">
-              <Button variant="ghost" size="sm" className="justify-start">
-                Sign In
-              </Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90">
-                List Property
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </nav>
-  )
+          {/* Premium Call to Action Shortcut Button */}
+          <Link
+            href="/admin"
+            className={`ml-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
+              isActive("/admin")
+                ? "bg-blue-600 text-white shadow-xs"
+                : "bg-black text-white hover:bg-gray-800 shadow-xs hover:shadow-md"
+            }`}
+          >
+            + Add Property
+          </Link>
+        </nav>
+
+      </div>
+    </header>
+  );
 }
