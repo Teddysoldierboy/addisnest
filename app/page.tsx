@@ -22,7 +22,6 @@ export default function HomePage() {
     setDatabaseError(null);
 
     try {
-      // 1. Try fetching from the standard "properties" table
       const { data, error } = await supabase
         .from("properties")
         .select("*");
@@ -30,7 +29,6 @@ export default function HomePage() {
       if (error) {
         console.warn("Targeting 'properties' table failed, trying 'listings' fallback...", error);
         
-        // 2. Automated fallback: Try fetching from "listings" table if "properties" doesn't exist
         const { data: fallbackData, error: fallbackError } = await supabase
           .from("listings")
           .select("*");
@@ -52,7 +50,6 @@ export default function HomePage() {
     }
   }
 
-  // Safe numerical clean utility strips text artifacts (like commas, spaces, letters)
   const parseNumericPrice = (value: any): number => {
     if (value === null || value === undefined) return 0;
     const cleaned = String(value).replace(/[^0-9.]/g, "");
@@ -63,7 +60,6 @@ export default function HomePage() {
   useEffect(() => {
     let result = [...listings];
 
-    // 1. Title + Location Live Search Filter
     if (search.trim()) {
       const query = search.toLowerCase().trim();
       result = result.filter(
@@ -73,7 +69,6 @@ export default function HomePage() {
       );
     }
 
-    // 2. Buy/Rent Filter matching both potential column names 'listing_type' and 'type'
     if (typeFilter !== "all") {
       const filterTarget = typeFilter.toLowerCase().trim();
       result = result.filter((listing) => {
@@ -82,7 +77,6 @@ export default function HomePage() {
       });
     }
 
-    // 3. Mathematical Price Sorting Engine
     if (sortPrice === "low") {
       result.sort((a, b) => parseNumericPrice(a.price) - parseNumericPrice(b.price));
     } else if (sortPrice === "high") {
@@ -93,18 +87,9 @@ export default function HomePage() {
   }, [search, typeFilter, sortPrice, listings]);
 
   return (
-    <main className="max-w-6xl mx-auto p-4 md:p-8">
-      {/* Brand Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-          AddisNest
-        </h1>
-        <p className="text-xs text-gray-400 font-medium tracking-wide uppercase mt-1">
-          Real Estate Discovery Engine
-        </p>
-      </div>
-
-      {/* Control Panel: Side-by-Side Filters */}
+    <main className="max-w-6xl mx-auto p-4 md:p-8 pt-6 md:pt-10">
+      
+      {/* Control Panel Filters - Now shifted up perfectly under the global navbar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full mb-10 bg-white p-3 rounded-2xl border border-gray-100 shadow-xs">
         
         {/* Search input Box */}
@@ -230,7 +215,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* LIVE SCHEMATIC DEBUG PANEL PANEL */}
+      {/* LIVE SCHEMATIC DEBUG PANEL */}
       <div className="mt-20 p-4 bg-gray-900 text-green-400 rounded-xl font-mono text-xs overflow-x-auto">
         <p className="text-white border-b border-gray-700 pb-2 mb-2 font-bold">🛠️ Live Application Debugger Console</p>
         <p>Total Items Pulled from Database: {listings.length}</p>
