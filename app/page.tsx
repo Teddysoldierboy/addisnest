@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link"; // Added the missing import to fix the crash
 
 export default function HomePage() {
   const [listings, setListings] = useState<any[]>([]);
@@ -26,7 +27,7 @@ export default function HomePage() {
     setLoading(false);
   }
 
-  // Defensive helper function to cleanly parse raw prices to numbers
+  // Helper utility function to cleanly parse raw prices to numbers
   const parseNumericPrice = (value: any): number => {
     if (value === null || value === undefined) return 0;
     const cleaned = String(value).replace(/[^0-9.]/g, "");
@@ -130,51 +131,50 @@ export default function HomePage() {
           {filtered.map((listing) => {
             const displayPrice = parseNumericPrice(listing.price);
             return (
-              <div
-                key={listing.id}
-                className="group bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between"
-              >
-                {/* Visual Thumbnail Backup Block */}
-                <div className="h-48 w-full bg-gray-50 flex items-center justify-center relative overflow-hidden border-b border-gray-100">
-                  {listing.image_url ? (
-                    <img 
-                      src={listing.image_url} 
-                      alt={listing.title} 
-                      className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-200"
-                    />
-                  ) : (
-                    <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">🏢 No Layout Media Provided</span>
-                  )}
-                  
-                  {/* Absolute Top Badge Overlay */}
-                  <span className={`absolute top-3 left-3 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md text-white shadow-xs ${
-                    String(listing.type).toLowerCase() === 'rent' ? 'bg-blue-600' : 'bg-green-600'
-                  }`}>
-                    For {listing.type || 'Sale'}
-                  </span>
-                </div>
-
-                {/* Info Text Elements Body block */}
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors line-clamp-1">
-                      {listing.title}
-                    </h2>
-                    <p className="text-gray-500 text-xs mt-1 font-medium">
-                      📍 {listing.location || "Addis Ababa, Ethiopia"}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between">
-                    <p className="text-base font-black text-black">
-                      {displayPrice > 0 ? `${displayPrice.toLocaleString()} ETB` : "Inquire for Price"}
-                    </p>
-                    <span className="text-xs font-semibold text-blue-600 group-hover:underline cursor-pointer">
-                      Explore Details →
+              <Link key={listing.id} href={`/property/${listing.id}`} className="group block">
+                <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all duration-200 flex flex-col h-full justify-between">
+                  {/* Visual Thumbnail Backup Block */}
+                  <div className="h-48 w-full bg-gray-50 flex items-center justify-center relative overflow-hidden border-b border-gray-100">
+                    {listing.image_url ? (
+                      <img 
+                        src={listing.image_url} 
+                        alt={listing.title} 
+                        className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-200"
+                      />
+                    ) : (
+                      <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">🏢 No Layout Media Provided</span>
+                    )}
+                    
+                    {/* Absolute Top Badge Overlay */}
+                    <span className={`absolute top-3 left-3 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md text-white shadow-xs ${
+                      String(listing.type).toLowerCase() === 'rent' ? 'bg-blue-600' : 'bg-green-600'
+                    }`}>
+                      For {listing.type || 'Sale'}
                     </span>
                   </div>
+
+                  {/* Info Text Elements Body block */}
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {listing.title}
+                      </h2>
+                      <p className="text-gray-500 text-xs mt-1 font-medium">
+                        📍 {listing.location || "Addis Ababa, Ethiopia"}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <p className="text-base font-black text-black">
+                        {displayPrice > 0 ? `${displayPrice.toLocaleString()} ETB` : "Inquire for Price"}
+                      </p>
+                      <span className="text-xs font-semibold text-blue-600 group-hover:underline cursor-pointer">
+                        Explore Details →
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
