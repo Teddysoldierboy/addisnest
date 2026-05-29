@@ -14,153 +14,231 @@ export default async function PropertyPage({
 
   if (!id) return notFound();
 
-  // Fetch from the correct "properties" table
   const { data: property, error } = await supabase
     .from("properties")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error || !property) {
-    return notFound();
-  }
+  if (error || !property) return notFound();
 
-  // Pre-fill a WhatsApp text message template with the specific property details
   const whatsappMessage = encodeURIComponent(
-    `Hello AddisNest, I am interested in your listing: "${property.title}" in ${property.location || "Addis Ababa"}. Is it still available?`
+    `Hello AddisNest, I'm interested in "${property.title}" located in ${property.location}. Is it still available?`
   );
-  const defaultAgentPhone = "+251911234567"; // Replace this placeholder with your actual business line later
+
+  const defaultAgentPhone = "+251911234567";
+
+  const gallery =
+    property.gallery?.length > 0
+      ? property.gallery
+      : property.image_url
+      ? [property.image_url]
+      : [];
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8">
-      {/* Back to Discovery Navigation */}
-      <div className="mb-6">
-        <Link 
-          href="/" 
-          className="text-sm font-medium text-gray-500 hover:text-black transition-colors inline-flex items-center gap-2"
-        >
-          ← Back to Marketplace
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* NAV */}
+      <div className="bg-white border-b sticky top-0 z-50 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <Link
+            href="/"
+            className="text-sm font-medium text-gray-500 hover:text-black"
+          >
+            ← Back to Listings
+          </Link>
 
-      {/* Main Image Showcase with Floating Context Badge */}
-      <div className="relative w-full h-[350px] md:h-[500px] overflow-hidden rounded-2xl shadow-sm border border-gray-100 bg-gray-50">
-        {property.image_url ? (
-          <img
-            src={property.image_url}
-            alt={property.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-100">
-            <span className="text-4xl mb-2">🏢</span>
-            <span className="text-sm font-medium">No Image Provided</span>
-          </div>
-        )}
-        
-        {/* Absolute-Positioned Buy/Rent Indicator Badge */}
-        <div className="absolute top-4 left-4 z-10">
-          <span className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md text-white ${
-            property.listing_type === 'rent' ? 'bg-blue-600' : 'bg-green-600'
-          }`}>
-            For {property.listing_type || 'Sale'}
+          <span className="text-sm font-semibold">
+            AddisNest
           </span>
         </div>
       </div>
 
-      {/* Hero Header Presentation */}
-      <div className="mt-8 border-b border-gray-100 pb-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+      <div className="max-w-7xl mx-auto p-6">
+
+        {/* HERO GALLERY */}
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <div className="md:col-span-3 h-[520px] rounded-3xl overflow-hidden shadow-sm">
+            {gallery[0] ? (
+              <img
+                src={gallery[0]}
+                alt={property.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center bg-gray-200 text-gray-500">
+                No Image
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+            {gallery.slice(1, 5).map((img: string, i: number) => (
+              <div
+                key={i}
+                className="h-40 rounded-2xl overflow-hidden"
+              >
+                <img
+                  src={img}
+                  alt={`Gallery ${i}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* TITLE */}
+        <div className="bg-white rounded-3xl border p-8 mb-8 shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between gap-8">
+            <div>
+              <span className="inline-block px-4 py-2 bg-gray-100 rounded-full text-sm font-medium">
+                {property.category || "Property"}
+              </span>
+
+              <h1 className="text-4xl md:text-5xl font-bold mt-4 tracking-tight">
+                {property.title}
+              </h1>
+
+              <p className="text-gray-500 mt-3 text-lg">
+                📍 {property.location || "Addis Ababa"}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-sm text-gray-500 uppercase tracking-wider">
+                Price
+              </p>
+
+              <p className="text-4xl font-extrabold mt-2">
+                {property.price
+                  ? `${Number(property.price).toLocaleString()} ETB`
+                  : "Contact"}
+              </p>
+
+              <span
+                className={`inline-block mt-4 px-5 py-2 rounded-xl text-white font-semibold ${
+                  property.listing_type === "rent"
+                    ? "bg-blue-600"
+                    : "bg-green-600"
+                }`}
+              >
+                For {property.listing_type || "Sale"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT */}
+        <div className="grid lg:grid-cols-3 gap-8">
+
+          {/* LEFT */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* QUICK STATS */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard label="Bedrooms" value={property.bedrooms || 0} icon="🛏️" />
+              <StatCard label="Bathrooms" value={property.bathrooms || 0} icon="🛁" />
+              <StatCard label="Area" value={`${property.area || 0} sqm`} icon="📐" />
+              <StatCard label="Type" value={property.category} icon="🏠" />
+            </div>
+
+            {/* DESCRIPTION */}
+            <section className="bg-white rounded-3xl border p-8 shadow-sm">
+              <h2 className="text-2xl font-bold mb-5">
+                About this Property
+              </h2>
+
+              <p className="text-gray-700 leading-8 whitespace-pre-line">
+                {property.description ||
+                  "No description available for this listing."}
+              </p>
+            </section>
+
+            {/* AMENITIES */}
+            {property.amenities?.length > 0 && (
+              <section className="bg-white rounded-3xl border p-8 shadow-sm">
+                <h2 className="text-2xl font-bold mb-5">
+                  Amenities
+                </h2>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {property.amenities.map(
+                    (item: string, i: number) => (
+                      <div
+                        key={i}
+                        className="bg-gray-50 p-4 rounded-xl flex items-center gap-3"
+                      >
+                        ✓ {item}
+                      </div>
+                    )
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* RIGHT SIDEBAR */}
           <div>
-            <span className="inline-block px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-md mb-2">
-              {property.category || "Property"}
-            </span>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-              {property.title}
-            </h1>
-            <p className="text-gray-500 mt-2 flex items-center gap-1.5 text-sm md:text-base">
-              📍 {property.location || "Addis Ababa, Ethiopia"}
-            </p>
-          </div>
-          
-          <div className="md:text-right">
-            <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Price</p>
-            <p className="text-3xl font-extrabold text-black mt-0.5">
-              {property.price ? `${Number(property.price).toLocaleString()} ETB` : "Contact for Price"}
-            </p>
-          </div>
-        </div>
-      </div>
+            <div className="bg-white rounded-3xl border p-8 shadow-sm sticky top-24">
+              <h3 className="text-2xl font-bold mb-4">
+                Contact Agent
+              </h3>
 
-      {/* Premium Specifications Grid Matrix */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-b border-gray-100">
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase">Bedrooms</p>
-          <p className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-2">
-            🛏️ {property.bedrooms || 0} Rooms
-          </p>
-        </div>
+              <p className="text-gray-500 mb-6">
+                Schedule a viewing or request more details.
+              </p>
 
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase">Bathrooms</p>
-          <p className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-2">
-            🛁 {property.bathrooms || 0} Baths
-          </p>
-        </div>
+              <div className="space-y-4">
+                <a
+                  href={`tel:${defaultAgentPhone}`}
+                  className="block w-full text-center bg-black text-white py-4 rounded-2xl font-semibold hover:bg-gray-800"
+                >
+                  📞 Call Agent
+                </a>
 
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase">Total Area</p>
-          <p className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-1">
-            📐 {property.area || 0} <span className="text-sm font-medium text-gray-500">sqm</span>
-          </p>
-        </div>
+                <a
+                  href={`https://wa.me/${defaultAgentPhone.replace(
+                    "+",
+                    ""
+                  )}?text=${whatsappMessage}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center bg-green-600 text-white py-4 rounded-2xl font-semibold hover:bg-green-700"
+                >
+                  💬 WhatsApp
+                </a>
+              </div>
 
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase">Listing Context</p>
-          <p className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-2 capitalize">
-            🔑 Immediate {property.listing_type || "Buy"}
-          </p>
-        </div>
-      </div>
-
-      {/* Structured Content Shell & Action Block Grid Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-        {/* Core Narrative Text Section */}
-        <div className="lg:col-span-2">
-          <h2 className="text-xl font-bold text-gray-900 mb-3">About this space</h2>
-          <p className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
-            {property.description || "No specific metadata description provided for this listing."}
-          </p>
-        </div>
-
-        {/* Call To Action Agent Engagement Card */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit space-y-4">
-          <h3 className="text-lg font-bold text-gray-900">Interested in this property?</h3>
-          <p className="text-xs text-gray-500 leading-normal">
-            Connect directly with an authorized AddisNest real estate agent to gather details, verify layouts, or organize an on-site visit in Addis Ababa.
-          </p>
-          
-          <div className="space-y-2 pt-2">
-            {/* Direct Cellular Phone Protocol Link */}
-            <a 
-              href={`tel:${defaultAgentPhone}`}
-              className="block w-full text-center bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors shadow-sm"
-            >
-              📞 Call Agent
-            </a>
-
-            {/* Direct WhatsApp Message Link with Pre-filled Context Text */}
-            <a 
-              href={`https://wa.me/${defaultAgentPhone.replace('+', '')}?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full text-center border border-green-500 text-green-600 bg-green-50/20 py-3 rounded-xl font-semibold hover:bg-green-50 transition-colors"
-            >
-              💬 WhatsApp Inquiry
-            </a>
+              <div className="mt-8 pt-6 border-t">
+                <p className="text-sm text-gray-500">
+                  Verified by AddisNest
+                </p>
+                <p className="font-semibold mt-1">
+                  Professional Property Support
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: string;
+}) {
+  return (
+    <div className="bg-white p-6 rounded-2xl border shadow-sm">
+      <p className="text-2xl">{icon}</p>
+      <p className="text-sm text-gray-500 mt-2">{label}</p>
+      <p className="text-xl font-bold mt-1">{value}</p>
     </div>
   );
 }
