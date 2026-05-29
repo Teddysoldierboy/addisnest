@@ -1,244 +1,162 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { MapPin, Bed, Bath, Ruler, Phone, MessageCircle, Eye, ArrowLeft, Tag } from 'lucide-react';
+import { getPropertyById, getSimilarProperties } from '@/lib/supabase/queries';
+import { PropertyGallery } from '@/components/property/PropertyGallery';
+import { PropertyCard } from '@/components/property/PropertyCard';
+import { formatPrice } from '@/lib/utils';
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function PropertyPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-
-  if (!id) return notFound();
-
-  const { data: property, error } = await supabase
-    .from("properties")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !property) return notFound();
-
-  const whatsappMessage = encodeURIComponent(
-    `Hello AddisNest, I'm interested in "${property.title}" located in ${property.location}. Is it still available?`
-  );
-
-  const defaultAgentPhone = "+251911234567";
-
-  const gallery =
-    property.gallery?.length > 0
-      ? property.gallery
-      : property.image_url
-      ? [property.image_url]
-      : [];
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* NAV */}
-      <div className="bg-white border-b sticky top-0 z-50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link
-            href="/"
-            className="text-sm font-medium text-gray-500 hover:text-black"
-          >
-            ← Back to Listings
-          </Link>
-
-          <span className="text-sm font-semibold">
-            AddisNest
-          </span>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-6">
-
-        {/* HERO GALLERY */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <div className="md:col-span-3 h-[520px] rounded-3xl overflow-hidden shadow-sm">
-            {gallery[0] ? (
-              <img
-                src={gallery[0]}
-                alt={property.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="h-full flex items-center justify-center bg-gray-200 text-gray-500">
-                No Image
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-            {gallery.slice(1, 5).map((img: string, i: number) => (
-              <div
-                key={i}
-                className="h-40 rounded-2xl overflow-hidden"
-              >
-                <img
-                  src={img}
-                  alt={`Gallery ${i}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* TITLE */}
-        <div className="bg-white rounded-3xl border p-8 mb-8 shadow-sm">
-          <div className="flex flex-col md:flex-row justify-between gap-8">
-            <div>
-              <span className="inline-block px-4 py-2 bg-gray-100 rounded-full text-sm font-medium">
-                {property.category || "Property"}
-              </span>
-
-              <h1 className="text-4xl md:text-5xl font-bold mt-4 tracking-tight">
-                {property.title}
-              </h1>
-
-              <p className="text-gray-500 mt-3 text-lg">
-                📍 {property.location || "Addis Ababa"}
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p className="text-sm text-gray-500 uppercase tracking-wider">
-                Price
-              </p>
-
-              <p className="text-4xl font-extrabold mt-2">
-                {property.price
-                  ? `${Number(property.price).toLocaleString()} ETB`
-                  : "Contact"}
-              </p>
-
-              <span
-                className={`inline-block mt-4 px-5 py-2 rounded-xl text-white font-semibold ${
-                  property.listing_type === "rent"
-                    ? "bg-blue-600"
-                    : "bg-green-600"
-                }`}
-              >
-                For {property.listing_type || "Sale"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* MAIN CONTENT */}
-        <div className="grid lg:grid-cols-3 gap-8">
-
-          {/* LEFT */}
-          <div className="lg:col-span-2 space-y-8">
-
-            {/* QUICK STATS */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard label="Bedrooms" value={property.bedrooms || 0} icon="🛏️" />
-              <StatCard label="Bathrooms" value={property.bathrooms || 0} icon="🛁" />
-              <StatCard label="Area" value={`${property.area || 0} sqm`} icon="📐" />
-              <StatCard label="Type" value={property.category} icon="🏠" />
-            </div>
-
-            {/* DESCRIPTION */}
-            <section className="bg-white rounded-3xl border p-8 shadow-sm">
-              <h2 className="text-2xl font-bold mb-5">
-                About this Property
-              </h2>
-
-              <p className="text-gray-700 leading-8 whitespace-pre-line">
-                {property.description ||
-                  "No description available for this listing."}
-              </p>
-            </section>
-
-            {/* AMENITIES */}
-            {property.amenities?.length > 0 && (
-              <section className="bg-white rounded-3xl border p-8 shadow-sm">
-                <h2 className="text-2xl font-bold mb-5">
-                  Amenities
-                </h2>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  {property.amenities.map(
-                    (item: string, i: number) => (
-                      <div
-                        key={i}
-                        className="bg-gray-50 p-4 rounded-xl flex items-center gap-3"
-                      >
-                        ✓ {item}
-                      </div>
-                    )
-                  )}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* RIGHT SIDEBAR */}
-          <div>
-            <div className="bg-white rounded-3xl border p-8 shadow-sm sticky top-24">
-              <h3 className="text-2xl font-bold mb-4">
-                Contact Agent
-              </h3>
-
-              <p className="text-gray-500 mb-6">
-                Schedule a viewing or request more details.
-              </p>
-
-              <div className="space-y-4">
-                <a
-                  href={`tel:${defaultAgentPhone}`}
-                  className="block w-full text-center bg-black text-white py-4 rounded-2xl font-semibold hover:bg-gray-800"
-                >
-                  📞 Call Agent
-                </a>
-
-                <a
-                  href={`https://wa.me/${defaultAgentPhone.replace(
-                    "+",
-                    ""
-                  )}?text=${whatsappMessage}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center bg-green-600 text-white py-4 rounded-2xl font-semibold hover:bg-green-700"
-                >
-                  💬 WhatsApp
-                </a>
-              </div>
-
-              <div className="mt-8 pt-6 border-t">
-                <p className="text-sm text-gray-500">
-                  Verified by AddisNest
-                </p>
-                <p className="font-semibold mt-1">
-                  Professional Property Support
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+interface Props {
+  params: { id: string };
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  icon: string;
-}) {
+export default async function PropertyPage({ params }: Props) {
+  const property = await getPropertyById(params.id);
+  if (!property) notFound();
+  
+  const similar = await getSimilarProperties(property);
+
+  const whatsappMessage = encodeURIComponent(
+    `Hi, I'm interested in the property: ${property.title} listed on AddisNest. Could you provide more details?`
+  );
+  const whatsappUrl = `https://wa.me/${property.agent_whatsapp ?? '251900000000'}?text=${whatsappMessage}`;
+
   return (
-    <div className="bg-white p-6 rounded-2xl border shadow-sm">
-      <p className="text-2xl">{icon}</p>
-      <p className="text-sm text-gray-500 mt-2">{label}</p>
-      <p className="text-xl font-bold mt-1">{value}</p>
-    </div>
+    <main className="min-h-screen bg-neutral-50">
+      {/* Back nav */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          Back to listings
+        </Link>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left: gallery + details */}
+        <div className="lg:col-span-2 space-y-6">
+          <PropertyGallery images={property.images} title={property.title} />
+
+          {/* Title & Badges */}
+          <div>
+            <div className="flex flex-wrap gap-2 mb-2">
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                property.listing_type === 'rent' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+              }`}>
+                For {property.listing_type === 'rent' ? 'Rent' : 'Sale'}
+              </span>
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 capitalize">
+                {property.category}
+              </span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">{property.title}</h1>
+            <div className="flex items-center gap-1.5 mt-2 text-neutral-500">
+              <MapPin className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm">{property.location}</span>
+            </div>
+          </div>
+
+          {/* Specs */}
+          <div className="grid grid-cols-3 gap-4">
+            {property.bedrooms != null && (
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-neutral-100">
+                <Bed className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+                <p className="text-lg font-semibold text-neutral-900">{property.bedrooms}</p>
+                <p className="text-xs text-neutral-500">Bedrooms</p>
+              </div>
+            )}
+            {property.bathrooms != null && (
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-neutral-100">
+                <Bath className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+                <p className="text-lg font-semibold text-neutral-900">{property.bathrooms}</p>
+                <p className="text-xs text-neutral-500">Bathrooms</p>
+              </div>
+            )}
+            {property.area != null && (
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-neutral-100">
+                <Ruler className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+                <p className="text-lg font-semibold text-neutral-900">{property.area}</p>
+                <p className="text-xs text-neutral-500">m²</p>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {property.description && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100">
+              <h2 className="font-semibold text-neutral-900 mb-3">About this property</h2>
+              <p className="text-neutral-600 leading-relaxed whitespace-pre-line">{property.description}</p>
+            </div>
+          )}
+
+          {/* Views */}
+          <div className="flex items-center gap-1.5 text-neutral-400 text-xs">
+            <Eye className="w-3.5 h-3.5" />
+            <span>{property.views ?? 0} views</span>
+          </div>
+        </div>
+
+        {/* Right: pricing + CTA */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 space-y-4">
+            {/* Price Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100">
+              <p className="text-3xl font-bold text-neutral-900">
+                {formatPrice(property.price)}
+                {property.listing_type === 'rent' && (
+                  <span className="text-base font-normal text-neutral-500">/mo</span>
+                )}
+              </p>
+              <p className="text-sm text-neutral-500 mt-1 capitalize">{property.listing_type === 'rent' ? 'Monthly rent' : 'Asking price'}</p>
+
+              <div className="mt-6 space-y-3">
+                
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp Agent
+                </a>
+                {property.agent_phone && (
+                  
+                    href={`tel:${property.agent_phone}`}
+                    className="flex items-center justify-center gap-2 w-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                  >
+                    <Phone className="w-4 h-4" />
+                    Call Agent
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Agent Card */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-amber-700 font-bold text-sm">
+                    {(property.agent_name ?? 'A').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium text-neutral-900 text-sm">{property.agent_name ?? 'AddisNest Agent'}</p>
+                  <p className="text-xs text-neutral-500">Verified Agent</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Similar Properties */}
+      {similar.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-10">
+          <h2 className="text-xl font-bold text-neutral-900 mb-6">Similar Properties</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {similar.map(p => <PropertyCard key={p.id} property={p} />)}
+          </div>
+        </section>
+      )}
+    </main>
   );
 }
