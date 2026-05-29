@@ -14,35 +14,33 @@ export default function AdminPage() {
   const [bathrooms, setBathrooms] = useState(1);
   const [area, setArea] = useState(0);
   const [featured, setFeatured] = useState(false);
-  const [status, setStatus] = useState("live");
+  const [status, setStatus] = useState("draft");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+  const [amenities, setAmenities] = useState("");
+  const [agentNotes, setAgentNotes] = useState("");
+  const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    let imageUrl = "";
+    const uploadedUrls: string[] = [];
 
-    if (image) {
+    for (const image of images) {
       const fileName = `${Date.now()}-${image.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from("property-images")
         .upload(fileName, image);
 
-      if (uploadError) {
-        alert("Image upload failed");
-        setLoading(false);
-        return;
+      if (!uploadError) {
+        const { data } = supabase.storage
+          .from("property-images")
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(data.publicUrl);
       }
-
-      const { data } = supabase.storage
-        .from("property-images")
-        .getPublicUrl(fileName);
-
-      imageUrl = data.publicUrl;
     }
 
     const { error } = await supabase.from("properties").insert([
@@ -52,234 +50,268 @@ export default function AdminPage() {
         price: Number(price),
         listing_type: type,
         category,
-        bedrooms: Number(bedrooms),
-        bathrooms: Number(bathrooms),
-        area: Number(area),
+        bedrooms,
+        bathrooms,
+        area,
         featured,
         status,
         description,
-        image_url: imageUrl
-      }
+        amenities: amenities
+          .split(",")
+          .map((a) => a.trim())
+          .filter(Boolean),
+        agent_notes: agentNotes,
+        image_url: uploadedUrls[0] || "",
+        gallery: uploadedUrls,
+      },
     ]);
 
     if (error) {
       alert("Failed to add property");
       console.error(error);
     } else {
-      alert("Property added successfully!");
+      alert("Property added successfully");
 
-      // Reset form fields cleanly
       setTitle("");
       setLocation("");
       setPrice("");
-      setType("buy");
-      setCategory("Apartment");
-      setBedrooms(1);
-      setBathrooms(1);
-      setArea(0);
-      setFeatured(false);
-      setStatus("live");
       setDescription("");
-      setImage(null);
+      setAmenities("");
+      setAgentNotes("");
+      setImages([]);
     }
 
     setLoading(false);
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      {/* Admin Sub Navigation */}
-      <div className="flex gap-4 mb-8">
-        <Link
-          href="/admin"
-          className="px-4 py-2 bg-black text-white rounded-lg"
-        >
-          Add Property
-        </Link>
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Header */}
+      <div className="bg-white border-b px-8 py-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-gray-500">
+              Manage listings professionally
+            </p>
+          </div>
 
-        <Link
-          href="/admin/listings"
-          className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Manage Listings
-        </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/admin"
+              className="px-4 py-2 bg-black text-white rounded-lg"
+            >
+              Add Property
+            </Link>
+
+            <Link
+              href="/admin/listings"
+              className="px-4 py-2 border rounded-lg"
+            >
+              Manage Listings
+            </Link>
+          </div>
+        </div>
       </div>
 
-      <h1 className="text-3xl font-bold mb-8">Add Property</h1>
+      <div className="max-w-6xl mx-auto p-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Property Title</label>
-          <input
-            type="text"
-            placeholder="e.g., Luxury Apartment in Bole"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border p-3 rounded-lg"
-            required
-          />
-        </div>
+          {/* Basic Info Card */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Basic Information
+            </h2>
 
-        {/* Location */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-          <input
-            type="text"
-            placeholder="e.g., Bole, Addis Ababa"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full border p-3 rounded-lg"
-            required
-          />
-        </div>
+            <div className="grid md:grid-cols-2 gap-5">
+              <input
+                type="text"
+                placeholder="Property Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="border p-3 rounded-lg"
+                required
+              />
 
-        {/* Price & Listing Type (Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price (ETB)</label>
-            <input
-              type="number"
-              placeholder="Price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="w-full border p-3 rounded-lg"
+              <input
+                type="text"
+                placeholder="Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="border p-3 rounded-lg"
+                required
+              />
+
+              <input
+                type="number"
+                placeholder="Price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="border p-3 rounded-lg"
+                required
+              />
+
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="border p-3 rounded-lg"
+              >
+                <option value="buy">Buy</option>
+                <option value="rent">Rent</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Property Specs */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Property Specs
+            </h2>
+
+            <div className="grid md:grid-cols-4 gap-4">
+              <input
+                type="number"
+                placeholder="Bedrooms"
+                value={bedrooms}
+                onChange={(e) => setBedrooms(Number(e.target.value))}
+                className="border p-3 rounded-lg"
+              />
+
+              <input
+                type="number"
+                placeholder="Bathrooms"
+                value={bathrooms}
+                onChange={(e) => setBathrooms(Number(e.target.value))}
+                className="border p-3 rounded-lg"
+              />
+
+              <input
+                type="number"
+                placeholder="Area sqm"
+                value={area}
+                onChange={(e) => setArea(Number(e.target.value))}
+                className="border p-3 rounded-lg"
+              />
+
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="border p-3 rounded-lg"
+              >
+                <option>Apartment</option>
+                <option>Villa</option>
+                <option>Commercial</option>
+                <option>Land</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Description
+            </h2>
+
+            <textarea
+              rows={6}
+              placeholder="Property description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full border p-4 rounded-lg"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Listing Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full border p-3 rounded-lg bg-white"
-            >
-              <option value="buy">Buy</option>
-              <option value="rent">Rent</option>
-            </select>
-          </div>
-        </div>
+          {/* Amenities */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Amenities
+            </h2>
 
-        {/* Category & Status (Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select 
-              value={category} 
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full border p-3 rounded-lg bg-white"
-            >
-              <option>Apartment</option>
-              <option>Villa</option>
-              <option>Commercial</option>
-              <option>Land</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select 
-              value={status} 
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full border p-3 rounded-lg bg-white"
-            >
-              <option value="live">Live</option>
-              <option value="hidden">Hidden</option>
-              <option value="draft">Draft</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Specs: Bedrooms, Bathrooms, Area (Grid) */}
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
             <input
-              type="number"
-              value={bedrooms}
-              onChange={(e) => setBedrooms(Number(e.target.value))}
+              type="text"
+              placeholder="Pool, Parking, Gym, Balcony"
+              value={amenities}
+              onChange={(e) => setAmenities(e.target.value)}
               className="w-full border p-3 rounded-lg"
-              min="0"
-              required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
+          {/* Media Upload */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Property Gallery
+            </h2>
+
             <input
-              type="number"
-              value={bathrooms}
-              onChange={(e) => setBathrooms(Number(e.target.value))}
-              className="w-full border p-3 rounded-lg"
-              min="0"
-              required
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) =>
+                setImages(
+                  e.target.files
+                    ? Array.from(e.target.files)
+                    : []
+                )
+              }
+              className="w-full"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Area (sqm)</label>
-            <input
-              type="number"
-              value={area || ""}
-              placeholder="e.g., 140"
-              onChange={(e) => setArea(Number(e.target.value))}
-              className="w-full border p-3 rounded-lg"
-              min="0"
-              required
+          {/* Publishing */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Publish Settings
+            </h2>
+
+            <div className="flex gap-4 items-center">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="border p-3 rounded-lg"
+              >
+                <option value="draft">Draft</option>
+                <option value="live">Live</option>
+                <option value="hidden">Hidden</option>
+              </select>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={featured}
+                  onChange={(e) =>
+                    setFeatured(e.target.checked)
+                  }
+                />
+                Featured Listing
+              </label>
+            </div>
+          </div>
+
+          {/* Agent Notes */}
+          <div className="bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-6">
+              Internal Notes
+            </h2>
+
+            <textarea
+              rows={4}
+              placeholder="Private admin notes..."
+              value={agentNotes}
+              onChange={(e) => setAgentNotes(e.target.value)}
+              className="w-full border p-4 rounded-lg"
             />
           </div>
-        </div>
 
-        {/* Featured Checkbox */}
-        <div className="flex items-center p-3 bg-gray-50 rounded-lg border">
-          <input
-            id="featured"
-            type="checkbox"
-            checked={featured}
-            onChange={(e) => setFeatured(e.target.checked)}
-            className="h-5 w-5 text-black border-gray-300 rounded focus:ring-black"
-          />
-          <label htmlFor="featured" className="ml-3 block text-sm font-medium text-gray-900 cursor-pointer select-none">
-            Feature this listing on the home page
-          </label>
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
-            placeholder="Describe the property details, amenities, nearby places..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full border p-3 rounded-lg"
-            rows={5}
-            required
-          />
-        </div>
-
-        {/* Image File Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Property Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setImage(e.target.files ? e.target.files[0] : null)
-            }
-            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
-          />
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full md:w-auto bg-black text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
-        >
-          {loading ? "Uploading Data..." : "Add Property"}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-gray-800"
+          >
+            {loading ? "Publishing..." : "Publish Property"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
