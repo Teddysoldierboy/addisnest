@@ -221,39 +221,28 @@ export default async function PropertyPage({ params }: Props) {
 
 
               <div className="mt-6 space-y-3">
-
                 
-
+                <a
                   href={whatsappUrl}
-
                   target="_blank"
-
                   rel="noopener noreferrer"
-
                   className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-
-                
-
+                >
                   <MessageCircle className="w-4 h-4" />
-
                   WhatsApp Agent
+                </a>
 
-                </a> {/* This is the end of your previous element */}
-
-{property.agent_phone && (
-  <a
-    href={`tel:${property.agent_phone}`}
-    className="flex items-center justify-center gap-2 w-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-  >
-    <Phone className="w-4 h-4" />
-    Call Agent
-  </a>
-)}
-
+                {property.agent_phone && (
+                  <a
+                    href={`tel:${property.agent_phone}`}
+                    className="flex items-center justify-center gap-2 w-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                  >
+                    <Phone className="w-4 h-4" />
+                    Call Agent
+                  </a>
                 )}
 
               </div>
-
             </div>
 
 
