@@ -3,10 +3,32 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
+import { MapPin, Bed, Bath, Ruler, Search } from "lucide-react";
+
+interface Property {
+  id: string;
+  title: string;
+  price: number;
+  location: string;
+  image_url: string | null;
+  listing_type: string;
+  category: string;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  area: number | null;
+  status: string;
+}
+
+function formatPrice(price: number): string {
+  if (price >= 1_000_000) return `ETB ${(price / 1_000_000).toFixed(1)}M`;
+  if (price >= 1_000) return `ETB ${(price / 1_000).toFixed(0)}K`;
+  return `ETB ${price.toLocaleString()}`;
+}
 
 export default function HomePage() {
-  const [listings, setListings] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
+  const [listings, setListings] = useState<Property[]>([]);
+  const [filtered, setFiltered] = useState<Property[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortPrice, setSortPrice] = useState("default");
@@ -24,7 +46,8 @@ export default function HomePage() {
     try {
       const { data, error } = await supabase
         .from("properties")
-        .select("*");
+        .select("*")
+        .eq("status", "active");
 
       if (error) {
         console.warn("Targeting 'properties' table failed, trying 'listings' fallback...", error);
@@ -52,6 +75,7 @@ export default function HomePage() {
 
   const parseNumericPrice = (value: any): number => {
     if (value === null || value === undefined) return 0;
+    if (typeof value === "number") return value;
     const cleaned = String(value).replace(/[^0-9.]/g, "");
     const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? 0 : parsed;
@@ -72,7 +96,7 @@ export default function HomePage() {
     if (typeFilter !== "all") {
       const filterTarget = typeFilter.toLowerCase().trim();
       result = result.filter((listing) => {
-        const actualType = (listing.listing_type || listing.type || "").toLowerCase().trim();
+        const actualType = (listing.listing_type || "").toLowerCase().trim();
         return actualType === filterTarget;
       });
     }
@@ -87,147 +111,166 @@ export default function HomePage() {
   }, [search, typeFilter, sortPrice, listings]);
 
   return (
-    <main className="max-w-6xl mx-auto p-4 md:p-8 pt-6 md:pt-10">
-      
-      {/* Control Panel Filters - Now shifted up perfectly under the global navbar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full mb-10 bg-white p-3 rounded-2xl border border-gray-100 shadow-xs">
-        
-        {/* Search input Box */}
-        <div className="flex-1 min-w-0">
-          <input
-            type="text"
-            placeholder="🔍 Search location, neighborhood, or title..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all h-12"
-          />
+    <main className="min-h-screen bg-neutral-50">
+      {/* Hero Header Filter Shell */}
+      <div className="bg-neutral-900 text-white py-12 px-4">
+        <div className="max-w-4xl mx-auto text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Find Your Home in <span className="text-amber-400">Addis Ababa</span>
+          </h1>
+          <p className="text-neutral-400 text-sm md:text-base">
+            Browse verified listings across the capital's premier neighborhoods.
+          </p>
         </div>
 
-        {/* Buy / Rent Dropdown Selector */}
-        <div className="w-full md:w-48 shrink-0">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all cursor-pointer h-12 font-medium"
-          >
-            <option value="all">All Operations</option>
-            <option value="buy">For Purchase / Buy</option>
-            <option value="rent">For Lease / Rent</option>
-          </select>
-        </div>
-
-        {/* Pricing Sort Dropdown Selector */}
-        <div className="w-full md:w-48 shrink-0">
-          <select
-            value={sortPrice}
-            onChange={(e) => setSortPrice(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all cursor-pointer h-12 font-medium"
-          >
-            <option value="default">Sort by Price</option>
-            <option value="low">Price: Low → High</option>
-            <option value="high">Price: High → Low</option>
-          </select>
+        {/* Unified Search Bar UI */}
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-3 bg-white p-2 rounded-2xl shadow-xl text-neutral-900">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <input
+              type="text"
+              placeholder="Search by location, neighborhood, or keywords..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl focus:outline-none"
+            />
+          </div>
+          <div className="flex w-full md:w-auto gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full md:w-40 text-neutral-700 text-sm px-3 py-2.5 rounded-xl border border-neutral-200 bg-white focus:outline-none"
+            >
+              <option value="all">All Types</option>
+              <option value="buy">For Sale</option>
+              <option value="rent">For Rent</option>
+            </select>
+            <select
+              value={sortPrice}
+              onChange={(e) => setSortPrice(e.target.value)}
+              className="w-full md:w-40 text-neutral-700 text-sm px-3 py-2.5 rounded-xl border border-neutral-200 bg-white focus:outline-none"
+            >
+              <option value="default">Sort Options</option>
+              <option value="low">Price: Low → High</option>
+              <option value="high">Price: High → Low</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* System Error Announcement Box */}
+      {/* Database Warning Banner */}
       {databaseError && (
-        <div className="p-4 mb-6 text-sm text-red-700 bg-red-50 rounded-xl border border-red-100">
-          ⚠️ <strong>System Connection Error:</strong> {databaseError}
-          <p className="mt-2 text-xs text-red-600">
-            Check your project's local <code>.env.local</code> file or Vercel Environment Variables to verify your Supabase URL and Keys match.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 mt-6">
+          <div className="p-4 text-sm text-red-700 bg-red-50 rounded-xl border border-red-100">
+            ⚠️ <strong>System Connection Error:</strong> {databaseError}
+          </div>
         </div>
       )}
 
-      {/* Main Listings Viewport */}
-      {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm font-medium tracking-wide">
-          Syncing records with live database cluster...
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((listing) => {
-            const displayPrice = parseNumericPrice(listing.price);
-            const currentType = listing.listing_type || listing.type || "buy";
-            
-            return (
-              <Link key={listing.id} href={`/property/${listing.id}`} className="group block">
-                <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all duration-200 flex flex-col h-full justify-between">
-                  
-                  {/* Thumbnail Cover Layout */}
-                  <div className="h-48 w-full bg-gray-50 flex items-center justify-center relative overflow-hidden border-b border-gray-100">
-                    {listing.image_url && listing.image_url.trim() !== "" ? (
-                      <img 
-                        src={listing.image_url} 
-                        alt={listing.title} 
-                        className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-200"
-                      />
-                    ) : (
-                      <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">🏢 No Layout Media Provided</span>
-                    )}
+      {/* Grid Container */}
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        {loading ? (
+          <div className="text-center py-20 text-neutral-400 text-sm font-medium">
+            Syncing records with live database cluster...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((property) => {
+              const price = parseNumericPrice(property.price);
+              const isRent = property.listing_type === 'rent';
+
+              return (
+                <Link key={property.id} href={`/property/${property.id}`} className="group block">
+                  <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-neutral-100 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 flex flex-col h-full">
                     
-                    <span className={`absolute top-3 left-3 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md text-white shadow-xs ${
-                      String(currentType).toLowerCase() === 'rent' ? 'bg-blue-600' : 'bg-green-600'
-                    }`}>
-                      For {currentType}
-                    </span>
-                  </div>
-
-                  {/* Metadata Text Elements */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors line-clamp-1">
-                        {listing.title}
-                      </h2>
-                      <p className="text-gray-500 text-xs mt-1 font-medium">
-                        📍 {listing.location || "Addis Ababa"}
-                      </p>
+                    {/* Next.js Optimized Image Frame */}
+                    <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+                      {property.image_url && property.image_url.trim() !== "" ? (
+                        <Image
+                          src={property.image_url}
+                          alt={property.title || "Property"}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          unoptimized={property.image_url.startsWith('http')}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <MapPin className="w-8 h-8 text-neutral-300" />
+                        </div>
+                      )}
+                      <div className="absolute top-3 left-3">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full text-white ${
+                          isRent ? 'bg-blue-500/90' : 'bg-emerald-500/90'
+                        }`}>
+                          {isRent ? 'For Rent' : 'For Sale'}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <p className="text-base font-black text-black">
-                        {displayPrice > 0 ? `${displayPrice.toLocaleString()} ETB` : "Inquire for Price"}
-                      </p>
-                      <span className="text-xs font-semibold text-blue-600 group-hover:underline">
-                        Explore Details →
-                      </span>
+                    {/* Meta Card Details */}
+                    <div className="p-4 flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-xl font-bold text-neutral-900">
+                          {price > 0 ? formatPrice(price) : "Contact for Price"}
+                          {isRent && <span className="text-sm font-normal text-neutral-400">/mo</span>}
+                        </p>
+                        <h3 className="font-semibold text-neutral-800 mt-1 truncate">
+                          {property.title}
+                        </h3>
+                        <div className="flex items-center gap-1 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+                          <p className="text-sm text-neutral-500 truncate">
+                            {property.location || "Addis Ababa"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Dynamic Spec Badges Row */}
+                      {(property.bedrooms != null || property.bathrooms != null || property.area != null) && (
+                        <div className="flex items-center gap-3 mt-4 pt-3 border-t border-neutral-100 text-neutral-500">
+                          {property.bedrooms != null && (
+                            <div className="flex items-center gap-1">
+                              <Bed className="w-3.5 h-3.5" />
+                              <span className="text-xs">{property.bedrooms} bd</span>
+                            </div>
+                          )}
+                          {property.bathrooms != null && (
+                            <div className="flex items-center gap-1">
+                              <Bath className="w-3.5 h-3.5" />
+                              <span className="text-xs">{property.bathrooms} ba</span>
+                            </div>
+                          )}
+                          {property.area != null && (
+                            <div className="flex items-center gap-1">
+                              <Ruler className="w-3.5 h-3.5" />
+                              <span className="text-xs">{property.area} m²</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
+
                   </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Empty Filter State Fallback */}
-      {!loading && filtered.length === 0 && !databaseError && (
-        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 max-w-md mx-auto mt-6">
-          <p className="text-gray-400 text-sm font-medium">No records matching your search filters are currently available.</p>
-          <button
-            onClick={() => { setSearch(""); setTypeFilter("all"); setSortPrice("default"); }}
-            className="mt-3 text-xs font-bold text-black underline hover:text-gray-600 transition-colors"
-          >
-            Clear Search Conditions
-          </button>
-        </div>
-      )}
-
-      {/* LIVE SCHEMATIC DEBUG PANEL */}
-      <div className="mt-20 p-4 bg-gray-900 text-green-400 rounded-xl font-mono text-xs overflow-x-auto">
-        <p className="text-white border-b border-gray-700 pb-2 mb-2 font-bold">🛠️ Live Application Debugger Console</p>
-        <p>Total Items Pulled from Database: {listings.length}</p>
-        <p>Current Active Search Input Text: "{search}"</p>
-        <p>Active Listing Operation Filter: "{typeFilter}"</p>
-        <p>Active Mathematical Sorting Rule: "{sortPrice}"</p>
-        <details className="mt-4 cursor-pointer text-gray-400">
-          <summary className="text-white font-semibold hover:underline">Click to view raw database payload array json structure</summary>
-          <pre className="mt-2 bg-black p-3 rounded text-green-500 max-h-60 overflow-y-auto">
-            {JSON.stringify(listings, null, 2)}
-          </pre>
-        </details>
+        {/* Empty State */}
+        {!loading && filtered.length === 0 && !databaseError && (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-neutral-200 max-w-md mx-auto">
+            <h3 className="text-base font-semibold text-neutral-800 mb-1">No matches found</h3>
+            <p className="text-neutral-400 text-sm mb-4">Try altering your search text or removing filters.</p>
+            <button
+              onClick={() => { setSearch(""); setTypeFilter("all"); setSortPrice("default"); }}
+              className="text-xs bg-neutral-900 text-white font-medium px-4 py-2 rounded-xl hover:bg-neutral-800 transition-colors"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );

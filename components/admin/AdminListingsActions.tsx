@@ -23,14 +23,15 @@ export function AdminListingsActions() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && applyFilter('search', search)}
+          onBlur={() => applyFilter('search', search)} // Auto-saves changes when clicking out
           placeholder="Search by title or location..."
-          className="w-full pl-9 pr-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full pl-9 pr-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
         />
       </div>
       <select
         defaultValue={searchParams.get('status') ?? 'all'}
         onChange={e => applyFilter('status', e.target.value === 'all' ? '' : e.target.value)}
-        className="border border-neutral-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+        className="border border-neutral-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white text-neutral-800"
       >
         <option value="all">All statuses</option>
         <option value="active">Active</option>
