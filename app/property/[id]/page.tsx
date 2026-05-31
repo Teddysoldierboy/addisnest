@@ -238,23 +238,17 @@ export default async function PropertyPage({ params }: Props) {
 
                   WhatsApp Agent
 
-                </a>
+                </a> {/* This is the end of your previous element */}
 
-                {property.agent_phone && (
-
-                  
-
-                    href={`tel:${property.agent_phone}`}
-
-                    className="flex items-center justify-center gap-2 w-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-
-                  >
-
-                    <Phone className="w-4 h-4" />
-
-                    Call Agent
-
-                  </a>
+{property.agent_phone && (
+  <a
+    href={`tel:${property.agent_phone}`}
+    className="flex items-center justify-center gap-2 w-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+  >
+    <Phone className="w-4 h-4" />
+    Call Agent
+  </a>
+)}
 
                 )}
 
