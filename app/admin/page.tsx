@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateAdminListings } from "@/app/admin/actions";
 import Link from "next/link";
 import {
   LayoutDashboard, Building2, Plus, Star, LogOut,
@@ -219,6 +220,7 @@ function DashboardView({ setView }: { setView: (v: any) => void }) {
 
 // ── Listings View ──────────────────────────────────────────────────────────────
 function ListingsView() {
+  const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -252,7 +254,11 @@ function ListingsView() {
         prev.map((item) => (item.id === p.id ? { ...item, status: previousStatus } : item))
       );
       alert(`Failed to update visibility: ${error.message}`);
+      return;
     }
+
+    await revalidateAdminListings();
+    router.refresh();
   }
 
   async function deleteProperty(id: string) {
@@ -266,7 +272,11 @@ function ListingsView() {
     if (error) {
       setProperties(snapshot);
       alert(`Failed to delete listing: ${error.message}`);
+      return;
     }
+
+    await revalidateAdminListings();
+    router.refresh();
   }
 
   const filtered = properties.filter((p) => {

@@ -1,8 +1,9 @@
+import { unstable_noStore as noStore } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { AdminStats, Property, PropertyFilters } from '@/lib/types';
 
 export async function getProperties(filters: PropertyFilters = {}): Promise<Property[]> {
-  // Added await here 👇
+  noStore();
   const supabase = await createClient();
   
   let query = supabase
@@ -53,7 +54,7 @@ export async function getProperties(filters: PropertyFilters = {}): Promise<Prop
 }
 
 export async function getPropertyById(id: string): Promise<Property | null> {
-  // Added await here 👇
+  noStore();
   const supabase = await createClient();
   let { data, error } = await supabase
     .from('properties')
@@ -76,7 +77,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
 }
 
 export async function getSimilarProperties(property: Property, limit = 3): Promise<Property[]> {
-  // Added await here 👇
+  noStore();
   const supabase = await createClient();
   const { data } = await supabase
     .from('properties')
@@ -90,6 +91,7 @@ export async function getSimilarProperties(property: Property, limit = 3): Promi
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
+  noStore();
   const supabase = await createClient();
 
   const [{ count: total }, { count: active }, { count: rented }, { count: sold }, { data: rows }] =
