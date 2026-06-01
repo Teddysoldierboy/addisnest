@@ -12,6 +12,7 @@ import { PropertyMapSection } from '@/components/property/PropertyMapSection';
 import { MortgageCalculator } from '@/components/property/MortgageCalculator';
 import { formatPrice } from '@/lib/utils';
 import { Landmark } from 'lucide-react';
+import { PropertyCompareBar } from '@/components/property/PropertyCompareBar';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -65,6 +66,7 @@ export default async function PropertyPage({ params }: Props) {
               <MapPin className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm">{property.location}</span>
             </div>
+            <PropertyCompareBar propertyId={property.id} />
           </div>
 
           <AmenityBadges amenities={property.amenities} limit={0} className="gap-2" />

@@ -8,6 +8,7 @@ const columns = [
       { label: 'Buy in Addis', href: '/#listings' },
       { label: 'Rentals', href: '/#listings' },
       { label: 'Featured homes', href: '/#featured' },
+      { label: 'Compare properties', href: '/compare' },
       { label: 'Luxury projects', href: '/#projects' },
     ],
   },

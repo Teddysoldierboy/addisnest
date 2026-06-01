@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { DM_Sans, Playfair_Display } from 'next/font/google';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { AppProviders } from '@/components/providers/AppProviders';
 import './globals.css';
 
 const dmSans = DM_Sans({
@@ -36,9 +37,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
       <body className="min-h-screen flex flex-col font-sans">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <AppProviders>
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+        </AppProviders>
       </body>
     </html>
   );

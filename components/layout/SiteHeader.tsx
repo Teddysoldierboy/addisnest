@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Scale } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useCompare } from '@/context/compare-context';
 
 const nav = [
   { href: '/#listings', label: 'Browse' },
   { href: '/#areas', label: 'Neighborhoods' },
   { href: '/#featured', label: 'Featured' },
+  { href: '/compare', label: 'Compare' },
   { href: '/admin/dashboard', label: 'Admin' },
 ];
 
@@ -17,6 +19,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isHome = pathname === '/';
+  const { count, hydrated } = useCompare();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-stone-200/80 bg-white/85 backdrop-blur-xl">
@@ -43,6 +46,18 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <Link
+            href="/compare"
+            className="relative inline-flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-[#0c0c0c] px-3 py-2"
+          >
+            <Scale className="w-4 h-4" />
+            Compare
+            {hydrated && count > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[#C9A227] text-[#0c0c0c] text-[10px] font-bold px-1">
+                {count}
+              </span>
+            )}
+          </Link>
           <Link
             href="/admin/login"
             className="text-sm font-medium text-stone-600 hover:text-[#0c0c0c] px-3 py-2"

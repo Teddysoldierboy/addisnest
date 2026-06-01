@@ -7,6 +7,7 @@ import { Bed, Bath, Heart, MapPin, Maximize2, Ruler } from 'lucide-react';
 import type { Property } from '@/lib/types';
 import { cn, formatPrice } from '@/lib/utils';
 import { AmenityBadges } from '@/components/property/AmenityBadges';
+import { CompareToggleButton } from '@/components/compare/CompareToggleButton';
 import { parseNumericPrice } from '@/lib/property-search';
 
 interface PremiumPropertyCardProps {
@@ -73,6 +74,7 @@ export function PremiumPropertyCard({ property, onQuickView }: PremiumPropertyCa
           </div>
 
           <div className="absolute top-3 right-3 flex gap-2">
+            <CompareToggleButton propertyId={property.id} variant="card" />
             <button
               type="button"
               onClick={toggleSave}
@@ -117,7 +119,10 @@ export function PremiumPropertyCard({ property, onQuickView }: PremiumPropertyCa
             <span className="truncate">{property.location}</span>
           </div>
           <AmenityBadges amenities={property.amenities} className="mt-2" limit={2} />
-          <div className="flex items-center gap-4 mt-3 text-xs text-stone-500">
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <CompareToggleButton propertyId={property.id} variant="inline" />
+          </div>
+          <div className="flex items-center gap-4 mt-2 text-xs text-stone-500">
             {property.bedrooms != null && (
               <span className="flex items-center gap-1">
                 <Bed className="w-3.5 h-3.5" /> {property.bedrooms} bd
