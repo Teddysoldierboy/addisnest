@@ -9,7 +9,9 @@ import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyDetailActions } from '@/components/property/PropertyDetailActions';
 import { AmenityBadges } from '@/components/property/AmenityBadges';
 import { PropertyMapSection } from '@/components/property/PropertyMapSection';
+import { MortgageCalculator } from '@/components/property/MortgageCalculator';
 import { formatPrice } from '@/lib/utils';
+import { Landmark } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -100,6 +102,23 @@ export default async function PropertyPage({ params }: Props) {
 
           <PropertyMapSection property={property} />
 
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-stone-100">
+            <h2 className="font-display text-lg font-semibold text-[#0c0c0c] mb-4 flex items-center gap-2">
+              <Landmark className="w-5 h-5 text-[#C9A227]" />
+              Nearby landmarks
+            </h2>
+            <ul className="grid sm:grid-cols-2 gap-3 text-sm text-stone-600">
+              {['Bole Medhanialem', 'Edna Mall', 'Atlas Hotel district', 'International schools'].map(
+                (item) => (
+                  <li key={item} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-50">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227]" />
+                    {item}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+
           <div className="flex items-center gap-1.5 text-neutral-400 text-xs">
             <Eye className="w-3.5 h-3.5" />
             <span>{property.views ?? 0} views</span>
@@ -122,21 +141,25 @@ export default async function PropertyPage({ params }: Props) {
               <PropertyDetailActions property={property} whatsappUrl={whatsappUrl} />
             </div>
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100">
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-amber-700 font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-[#C9A227]/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#0c0c0c] font-bold text-sm">
                     {(property.agent_name ?? 'A').charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <p className="font-medium text-neutral-900 text-sm">
+                  <p className="font-medium text-[#0c0c0c] text-sm">
                     {property.agent_name ?? 'AddisNest Agent'}
                   </p>
-                  <p className="text-xs text-neutral-500">Verified Agent</p>
+                  <p className="text-xs text-stone-500">Verified · Addis Ababa</p>
                 </div>
               </div>
             </div>
+
+            {property.listing_type !== 'rent' && (
+              <MortgageCalculator propertyPrice={Number(property.price) || 0} />
+            )}
           </div>
         </div>
       </div>
