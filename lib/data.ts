@@ -41,11 +41,37 @@ export const properties: Property[] = [
   },
   {
     id: "3",
-    title: "Cozy Studio in Kazanchis",
-    price: 35000,
-    priceFormatted: "ETB 35,000/mo",
+    title: "Cozy 2BR in Kazanchis",
+    price: 45000,
+    priceFormatted: "ETB 45,000",
     type: "rent",
     location: "Kazanchis",
+    bedrooms: 2,
+    bathrooms: 1,
+    sqm: 95,
+    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80",
+    verified: true,
+  },
+  {
+    id: "4",
+    title: "Spacious Villa in Old Airport",
+    price: 22000000,
+    priceFormatted: "ETB 22,000,000",
+    type: "sale",
+    location: "Old Airport",
+    bedrooms: 5,
+    bathrooms: 4,
+    sqm: 350,
+    image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80",
+    verified: false,
+  },
+  {
+    id: "5",
+    title: "Studio Apartment Bole Bulbula",
+    price: 25000,
+    priceFormatted: "ETB 25,000",
+    type: "rent",
+    location: "Bole Bulbula",
     bedrooms: 1,
     bathrooms: 1,
     sqm: 55,
@@ -53,83 +79,47 @@ export const properties: Property[] = [
     verified: true,
   },
   {
-    id: "4",
-    title: "Family Apartment in Gerji",
-    price: 6200000,
-    priceFormatted: "ETB 6,200,000",
-    type: "sale",
-    location: "Gerji",
-    bedrooms: 3,
-    bathrooms: 2,
-    sqm: 130,
-    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80",
-    verified: false,
-  },
-  {
-    id: "5",
-    title: "Executive Suite in Summit",
-    price: 75000,
-    priceFormatted: "ETB 75,000/mo",
-    type: "rent",
-    location: "Summit",
-    bedrooms: 2,
-    bathrooms: 2,
-    sqm: 95,
-    image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&q=80",
-    verified: true,
-  },
-  {
     id: "6",
-    title: "New Build in Ayat",
-    price: 4800000,
-    priceFormatted: "ETB 4,800,000",
+    title: "Family Home in Ayat",
+    price: 6500000,
+    priceFormatted: "ETB 6,500,000",
     type: "sale",
     location: "Ayat",
-    bedrooms: 2,
-    bathrooms: 1,
-    sqm: 90,
-    image: "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&q=80",
-    verified: true,
-  },
-  {
-    id: "7",
-    title: "Spacious Villa in Sarbet",
-    price: 22000000,
-    priceFormatted: "ETB 22,000,000",
-    type: "sale",
-    location: "Sarbet",
-    bedrooms: 5,
-    bathrooms: 4,
-    sqm: 350,
+    bedrooms: 3,
+    bathrooms: 2,
+    sqm: 180,
     image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80",
     verified: true,
   },
   {
-    id: "8",
-    title: "Modern Flat in Bole Atlas",
-    price: 55000,
-    priceFormatted: "ETB 55,000/mo",
+    id: "7",
+    title: "Modern Flat in Sarbet",
+    price: 35000,
+    priceFormatted: "ETB 35,000",
     type: "rent",
-    location: "Bole",
+    location: "Sarbet",
+    bedrooms: 2,
+    bathrooms: 2,
+    sqm: 110,
+    image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&q=80",
+    verified: true,
+  },
+  {
+    id: "8",
+    title: "Heritage Loft in Piassa",
+    price: 4200000,
+    priceFormatted: "ETB 4,200,000",
+    type: "sale",
+    location: "Piassa",
     bedrooms: 2,
     bathrooms: 1,
-    sqm: 80,
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80",
+    sqm: 85,
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
     verified: true,
   },
 ]
 
-export const locations = [
-  { value: "bole", label: "Bole" },
-  { value: "cmc", label: "CMC" },
-  { value: "gerji", label: "Gerji" },
-  { value: "summit", label: "Summit" },
-  { value: "ayat", label: "Ayat" },
-  { value: "kazanchis", label: "Kazanchis" },
-  { value: "sarbet", label: "Sarbet" },
-]
-
-export const priceRanges = [
+export const buyPriceRanges = [
   { value: "any", label: "Any Price" },
   { value: "0-5000000", label: "Up to ETB 5M" },
   { value: "5000000-10000000", label: "ETB 5M - 10M" },
@@ -153,29 +143,73 @@ export const bedroomOptions = [
   { value: "4", label: "4+ Bedrooms" },
 ]
 
+/** High-quality Unsplash URLs (auto=format) — used for neighborhood cards */
 export const popularAreas = [
   {
-    name: "Bole",
+    name: 'Bole Atlas',
+    searchTerm: 'Bole',
     properties: 245,
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=80",
-    description: "Premium area with international businesses and luxury apartments"
+    image:
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
+    description: 'Premium area with international businesses and luxury apartments',
   },
   {
-    name: "CMC",
-    properties: 189,
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80",
-    description: "Growing residential area with modern developments"
-  },
-  {
-    name: "Kazanchis",
+    name: 'Kazanchis',
+    searchTerm: 'Kazanchis',
     properties: 156,
-    image: "https://images.unsplash.com/photo-1464938050520-ef2571be9727?w=400&q=80",
-    description: "Central location near embassies and business district"
+    image:
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
+    description: 'Central location near embassies and business district',
   },
   {
-    name: "Summit",
-    properties: 98,
-    image: "https://images.unsplash.com/photo-1515263487990-61b07816b324?w=400&q=80",
-    description: "Upscale neighborhood with scenic views"
+    name: 'CMC',
+    searchTerm: 'CMC',
+    properties: 189,
+    image:
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
+    description: 'Growing residential area with modern developments',
   },
-]
+  {
+    name: 'Old Airport',
+    searchTerm: 'Old Airport',
+    properties: 132,
+    image:
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+    description: 'Walkable district with restaurants and modern lofts',
+  },
+  {
+    name: 'Bole Bulbula',
+    searchTerm: 'Bulbula',
+    properties: 98,
+    image:
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80',
+    description: 'Green belts and family-friendly apartment living',
+  },
+  {
+    name: 'Ayat',
+    searchTerm: 'Ayat',
+    properties: 87,
+    image:
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
+    description: 'Hillside townhouses with valley views',
+  },
+  {
+    name: 'Sarbet',
+    searchTerm: 'Sarbet',
+    properties: 76,
+    image:
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80',
+    description: 'Designer flats near major transport corridors',
+  },
+  {
+    name: 'Piassa',
+    searchTerm: 'Piassa',
+    properties: 64,
+    image:
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
+    description: 'Historic center with character lofts and culture',
+  },
+] as const;
+
+export const AREA_IMAGE_FALLBACK =
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useCompare } from '@/context/compare-context';
 
 const nav = [
-  { href: '/#listings', label: 'Browse' },
+  { href: '/listings', label: 'Browse' },
   { href: '/#areas', label: 'Neighborhoods' },
   { href: '/#featured', label: 'Featured' },
   { href: '/compare', label: 'Compare' },

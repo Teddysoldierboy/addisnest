@@ -5,8 +5,9 @@ const columns = [
   {
     title: 'Marketplace',
     links: [
-      { label: 'Buy in Addis', href: '/#listings' },
-      { label: 'Rentals', href: '/#listings' },
+      { label: 'Buy in Addis', href: '/listings?mode=buy' },
+      { label: 'Rentals', href: '/listings?mode=rent' },
+      { label: 'Verified listings', href: '/listings?verified=1' },
       { label: 'Featured homes', href: '/#featured' },
       { label: 'Compare properties', href: '/compare' },
       { label: 'Luxury projects', href: '/#projects' },
@@ -26,7 +27,6 @@ const columns = [
     links: [
       { label: 'Why AddisNest', href: '/#trust' },
       { label: 'Admin dashboard', href: '/admin/dashboard' },
-      { label: 'Verified listings', href: '/#verified' },
     ],
   },
 ];
