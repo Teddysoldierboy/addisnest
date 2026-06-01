@@ -236,17 +236,40 @@ function ListingsView() {
 
   async function toggleVisibility(p: Property) {
     const next = p.status === "active" ? "hidden" : "active";
-    await createClient().from("properties").update({ status: next }).eq("id", p.id);
-    load();
+    const previousStatus = p.status;
+
+    setProperties((prev) =>
+      prev.map((item) => (item.id === p.id ? { ...item, status: next } : item))
+    );
+
+    const { error } = await createClient()
+      .from("properties")
+      .update({ status: next })
+      .eq("id", p.id);
+
+    if (error) {
+      setProperties((prev) =>
+        prev.map((item) => (item.id === p.id ? { ...item, status: previousStatus } : item))
+      );
+      alert(`Failed to update visibility: ${error.message}`);
+    }
   }
 
   async function deleteProperty(id: string) {
     if (!confirm("Delete this listing permanently?")) return;
-    await createClient().from("properties").delete().eq("id", id);
-    load();
+
+    const snapshot = properties;
+    setProperties((prev) => prev.filter((item) => item.id !== id));
+
+    const { error } = await createClient().from("properties").delete().eq("id", id);
+
+    if (error) {
+      setProperties(snapshot);
+      alert(`Failed to delete listing: ${error.message}`);
+    }
   }
 
-  const filtered = properties.filter(p => {
+  const filtered = properties.filter((p) => {
     const q = search.toLowerCase();
     const matchSearch = !q || p.title?.toLowerCase().includes(q) || p.location?.toLowerCase().includes(q);
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
