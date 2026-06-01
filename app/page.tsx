@@ -1,9 +1,10 @@
 "use client";
+
 export const dynamic = 'force-dynamic';
 
-
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+// 1. CHANGED THIS IMPORT TO USE THE BROWSER CLIENT FACTORY FUNCTION
+import { createClient } from "@/lib/supabase/client"; 
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Bed, Bath, Ruler, Search } from "lucide-react";
@@ -46,6 +47,9 @@ export default function HomePage() {
     setDatabaseError(null);
 
     try {
+      // 2. INITIALIZE THE BROWSER CLIENT DIRECTLY INSIDE THE FETCH FUNCTION
+      const supabase = createClient();
+
       const { data, error } = await supabase
         .from("properties")
         .select("*")
