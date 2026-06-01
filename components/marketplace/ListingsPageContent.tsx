@@ -168,9 +168,16 @@ export function ListingsPageContent() {
         </div>
       ) : visible.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-dashed border-stone-300 bg-white">
-          <p className="font-semibold text-stone-800">No listings match this filter</p>
-          <Link href="/listings" className="text-sm text-[#C9A227] font-medium mt-2 inline-block">
-            View all properties
+          <p className="font-semibold text-stone-800">
+            {verified ? 'No verified listings match this filter' : 'No listings match this filter'}
+          </p>
+          <p className="text-sm text-stone-500 mt-1 max-w-md mx-auto">
+            {verified
+              ? 'Verified listings need an active status, photo, and agent contact on file.'
+              : 'Try adjusting your search or filters.'}
+          </p>
+          <Link href="/listings" className="text-sm text-[#C9A227] font-medium mt-3 inline-block">
+            {verified ? 'View all properties' : 'Clear filters'}
           </Link>
         </div>
       ) : (

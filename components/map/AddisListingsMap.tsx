@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Link from 'next/link';
+import { propertyPath } from '@/lib/routes';
 import type { Property } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
@@ -67,7 +68,7 @@ export function AddisListingsMap({ listings, className, height = '420px' }: Addi
                 <p className="font-semibold text-sm text-neutral-900">{p.title}</p>
                 <p className="text-xs text-neutral-500">{p.location}</p>
                 <p className="text-sm font-bold text-amber-600 mt-1">{formatPrice(p.price)}</p>
-                <Link href={`/property/${p.id}`} className="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                <Link href={propertyPath(p.id)} className="text-xs text-blue-600 hover:underline mt-1 inline-block">
                   View details →
                 </Link>
               </div>

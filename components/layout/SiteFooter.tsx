@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { listingsHref } from '@/lib/listings-filters';
+import { toAppPath } from '@/lib/routes';
 
 const columns = [
   {
@@ -16,10 +18,10 @@ const columns = [
   {
     title: 'Neighborhoods',
     links: [
-      { label: 'Bole', href: '/#areas' },
-      { label: 'Kazanchis', href: '/#areas' },
-      { label: 'CMC', href: '/#areas' },
-      { label: 'Old Airport', href: '/#areas' },
+      { label: 'Bole', href: listingsHref({ location: 'Bole' }) },
+      { label: 'Kazanchis', href: listingsHref({ location: 'Kazanchis' }) },
+      { label: 'CMC', href: listingsHref({ location: 'CMC' }) },
+      { label: 'Old Airport', href: listingsHref({ location: 'Old Airport' }) },
     ],
   },
   {
@@ -70,7 +72,7 @@ export function SiteFooter() {
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <Link
-                      href={link.href}
+                      href={toAppPath(link.href)}
                       className="text-sm text-stone-400 hover:text-[#C9A227] transition-colors"
                     >
                       {link.label}

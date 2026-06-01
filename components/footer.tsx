@@ -11,10 +11,10 @@ const footerLinks = {
     { label: "Press", href: "/press" },
   ],
   listings: [
-    { label: "Buy Property", href: "/buy" },
-    { label: "Rent Property", href: "/rent" },
-    { label: "New Projects", href: "/new-projects" },
-    { label: "Commercial", href: "/commercial" },
+    { label: "Buy Property", href: "/listings?mode=buy" },
+    { label: "Rent Property", href: "/listings?mode=rent" },
+    { label: "Verified Listings", href: "/listings?verified=1" },
+    { label: "All Listings", href: "/listings" },
   ],
   resources: [
     { label: "Blog", href: "/blog" },

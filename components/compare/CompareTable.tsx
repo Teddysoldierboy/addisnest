@@ -6,6 +6,7 @@ import { X, ExternalLink, Trophy } from 'lucide-react';
 import type { Property } from '@/lib/types';
 import { cn, formatPrice } from '@/lib/utils';
 import { parseNumericPrice } from '@/lib/property-search';
+import { propertyPath } from '@/lib/routes';
 import { computeCompareHighlights, pricePerSqm } from '@/lib/compare/analytics';
 import type { CompareHighlights } from '@/lib/compare/analytics';
 
@@ -193,7 +194,7 @@ export function CompareTable({ properties, highlights, onRemove }: CompareTableP
                     </div>
                     <h3 className="font-semibold text-[#0c0c0c] text-sm line-clamp-2 pr-6">{p.title}</h3>
                     <Link
-                      href={`/property/${p.id}`}
+                      href={propertyPath(p.id)}
                       className="inline-flex items-center gap-1 text-xs text-[#C9A227] font-medium mt-2 hover:underline"
                     >
                       View listing <ExternalLink className="w-3 h-3" />

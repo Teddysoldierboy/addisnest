@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { propertyPath } from "@/lib/routes";
 import { MapPin, Bed, Bath, Ruler } from "lucide-react";
 
 interface Property {
@@ -30,37 +31,40 @@ export default function FeaturedProperties({ mode }: { mode: "buy" | "rent" }) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
       setLoading(true);
-      
-      // FIXED: Swapped out status 'live' for 'active' to coordinate with schema structures
-      const supabase = createClient();
-      let query = supabase
-        .from("properties")
-        .select("*")
-        .eq("listing_type", mode)
-        .eq("status", "active");
+      setError(null);
 
-      if (search.trim()) {
-        query = query.ilike("location", `%${search.trim()}%`);
-      }
+      try {
+        const supabase = createClient();
+        let query = supabase
+          .from("properties")
+          .select("*")
+          .eq("listing_type", mode)
+          .eq("status", "active");
 
-      // Limit showcase to most recent 6 active entries
-      const { data, error } = await query
-        .order("created_at", { ascending: false })
-        .limit(6);
+        if (search.trim()) {
+          query = query.ilike("location", `%${search.trim()}%`);
+        }
 
-      if (error) {
-        console.error("Error fetching featured records:", error.message);
-      } else {
+        const { data, error: qErr } = await query
+          .order("created_at", { ascending: false })
+          .limit(6);
+
+        if (qErr) throw qErr;
         setProperties(data || []);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load featured properties");
+        setProperties([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    fetchProperties();
+    void fetchProperties();
   }, [mode, search]);
 
   return (
@@ -85,6 +89,12 @@ export default function FeaturedProperties({ mode }: { mode: "buy" | "rent" }) {
         />
       </div>
 
+      {error && (
+        <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm border border-red-100 text-center max-w-md mx-auto">
+          {error}
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center text-neutral-400 py-16 text-sm font-medium">
           Syncing marketplace records...
@@ -95,7 +105,7 @@ export default function FeaturedProperties({ mode }: { mode: "buy" | "rent" }) {
             const isRent = p.listing_type === 'rent';
             return (
               <Link
-                href={`/property/${p.id}`}
+                href={propertyPath(p.id)}
                 key={p.id}
                 className="group bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 flex flex-col h-full justify-between"
               >

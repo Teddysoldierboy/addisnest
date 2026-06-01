@@ -1,5 +1,22 @@
 import type { Property } from '@/lib/types';
 import { filterAndSortListings, matchesPropertySearch, parseNumericPrice } from '@/lib/property-search';
+import { toAppPath } from '@/lib/routes';
+
+/** Listings that passed verification: active, imaged, with agent contact. */
+export function isVerifiedListing(property: Property): boolean {
+  const status = (property.status || 'active').toLowerCase();
+  if (status !== 'active') return false;
+
+  const hasImage =
+    (Array.isArray(property.images) && property.images.length > 0) ||
+    Boolean(property.featured_image?.trim()) ||
+    Boolean(property.image_url?.trim());
+
+  const hasAgent =
+    Boolean(property.agent_phone?.trim()) || Boolean(property.agent_whatsapp?.trim());
+
+  return hasImage && hasAgent;
+}
 
 export interface ListingsFilterParams {
   search?: string;
@@ -52,7 +69,7 @@ export function applyListingsFilters(
   }
 
   if (params.verified) {
-    result = result.filter((p) => p.status === 'active');
+    result = result.filter(isVerifiedListing);
   }
 
   if (params.location?.trim()) {
@@ -75,5 +92,5 @@ export function listingsHref(options: {
   if (options.search) q.set('search', options.search);
   if (options.mode) q.set('mode', options.mode);
   const s = q.toString();
-  return s ? `/listings?${s}` : '/listings';
+  return toAppPath(s ? `/listings?${s}` : '/listings');
 }

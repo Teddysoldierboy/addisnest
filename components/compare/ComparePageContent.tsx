@@ -77,7 +77,7 @@ export function ComparePageContent() {
           (up to {MAX_COMPARE_PROPERTIES} properties).
         </p>
         <Link
-          href="/#listings"
+          href="/listings"
           className="inline-flex items-center gap-2 bg-[#0c0c0c] text-white font-semibold px-6 py-3 rounded-full hover:bg-[#1a1a1a] transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -118,7 +118,7 @@ export function ComparePageContent() {
           </button>
           {count < MAX_COMPARE_PROPERTIES && (
             <Link
-              href="/#listings"
+              href="/listings"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A227] text-[#0c0c0c] text-sm font-semibold hover:bg-[#E8D48B] transition-colors"
             >
               <Plus className="w-4 h-4" />

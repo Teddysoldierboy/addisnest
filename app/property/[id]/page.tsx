@@ -34,7 +34,7 @@ export default async function PropertyPage({ params }: Props) {
     <main className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <Link
-          href="/"
+          href="/listings"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

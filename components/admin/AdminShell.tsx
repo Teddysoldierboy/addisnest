@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Building2, Plus, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+import { toAppPath } from '@/lib/routes';
 
 const links = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,7 +35,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {links.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
-              href={href}
+              href={toAppPath(href)}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors',
                 pathname === href || pathname.startsWith(href + '/')

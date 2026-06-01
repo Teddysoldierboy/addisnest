@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Menu, X, Scale } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useCompare } from '@/context/compare-context';
+import { toAppPath } from '@/lib/routes';
 
 const nav = [
   { href: '/listings', label: 'Browse' },
@@ -16,9 +16,7 @@ const nav = [
 ];
 
 export function SiteHeader() {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const isHome = pathname === '/';
   const { count, hydrated } = useCompare();
 
   return (
@@ -37,7 +35,7 @@ export function SiteHeader() {
           {nav.map((item) => (
             <Link
               key={item.href}
-              href={isHome ? item.href : `/${item.href.replace('/#', '#')}`}
+              href={toAppPath(item.href)}
               className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-[#0c0c0c] rounded-lg hover:bg-stone-100 transition-colors"
             >
               {item.label}
@@ -92,7 +90,7 @@ export function SiteHeader() {
           {nav.map((item) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={toAppPath(item.href)}
               onClick={() => setOpen(false)}
               className="px-4 py-3 text-sm font-medium rounded-lg hover:bg-stone-50"
             >

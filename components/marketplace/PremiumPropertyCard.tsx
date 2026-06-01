@@ -9,6 +9,7 @@ import { cn, formatPrice } from '@/lib/utils';
 import { AmenityBadges } from '@/components/property/AmenityBadges';
 import { CompareToggleButton } from '@/components/compare/CompareToggleButton';
 import { parseNumericPrice } from '@/lib/property-search';
+import { propertyPath } from '@/lib/routes';
 
 interface PremiumPropertyCardProps {
   property: Property;
@@ -39,7 +40,7 @@ export function PremiumPropertyCard({ property, onQuickView }: PremiumPropertyCa
 
   return (
     <article className="group relative">
-      <Link href={`/property/${property.id}`} className="block">
+      <Link href={propertyPath(property.id)} className="block">
         <div className="relative overflow-hidden rounded-2xl bg-stone-100 aspect-[4/3] shadow-md group-hover:shadow-2xl transition-all duration-500">
           {hero ? (
             <Image
