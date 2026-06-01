@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { MapPin, Bed, Bath, Ruler } from "lucide-react";
 
 interface Property {
@@ -36,6 +36,7 @@ export default function FeaturedProperties({ mode }: { mode: "buy" | "rent" }) {
       setLoading(true);
       
       // FIXED: Swapped out status 'live' for 'active' to coordinate with schema structures
+      const supabase = createClient();
       let query = supabase
         .from("properties")
         .select("*")

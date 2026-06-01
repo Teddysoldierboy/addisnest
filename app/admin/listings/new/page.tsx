@@ -1,12 +1,15 @@
 export const dynamic = 'force-dynamic';
+
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { NewPropertyForm } from '@/components/admin/NewPropertyForm';
 
 export default async function NewListingPage() {
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) redirect('/admin');
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) redirect('/admin/login');
 
   return (
     <div className="min-h-screen bg-neutral-50 p-6">

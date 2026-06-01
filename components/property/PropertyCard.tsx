@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Bed, Bath, Ruler } from 'lucide-react';
 import type { Property } from '@/lib/types';
-import { formatPrice } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 
 interface PropertyCardProps {
   property: Property;

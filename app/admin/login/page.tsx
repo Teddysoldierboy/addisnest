@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError("Invalid email or password.");

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -5,9 +7,11 @@ import { getAdminStats } from '@/lib/supabase/queries';
 import { Building2, TrendingUp, Home, Eye } from 'lucide-react';
 
 export default async function AdminDashboard() {
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) redirect('/admin');
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) redirect('/admin/login');
 
   const stats = await getAdminStats();
 
@@ -34,7 +38,6 @@ export default async function AdminDashboard() {
           </Link>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {cards.map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100">
@@ -47,14 +50,23 @@ export default async function AdminDashboard() {
           ))}
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link href="/admin/listings" className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all group">
-            <h3 className="font-semibold text-neutral-900 group-hover:text-amber-600 transition-colors">Manage Listings →</h3>
+          <Link
+            href="/admin/listings"
+            className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all group"
+          >
+            <h3 className="font-semibold text-neutral-900 group-hover:text-amber-600 transition-colors">
+              Manage Listings →
+            </h3>
             <p className="text-sm text-neutral-500 mt-1">Edit, delete, or update property visibility</p>
           </Link>
-          <Link href="/admin/listings/new" className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all group">
-            <h3 className="font-semibold text-neutral-900 group-hover:text-amber-600 transition-colors">Add New Property →</h3>
+          <Link
+            href="/admin/listings/new"
+            className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all group"
+          >
+            <h3 className="font-semibold text-neutral-900 group-hover:text-amber-600 transition-colors">
+              Add New Property →
+            </h3>
             <p className="text-sm text-neutral-500 mt-1">Create a new listing with full details and images</p>
           </Link>
         </div>

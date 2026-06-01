@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import {
   LayoutDashboard, Building2, Plus, Star, LogOut,
@@ -57,7 +57,7 @@ export default function AdminPage() {
 
   // Check auth on mount
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    createClient().auth.getSession().then(({ data: { session } }) => {
       if (!session) router.replace("/admin/login");
       else { setAuthed(true); setChecking(false); }
     });
@@ -85,7 +85,7 @@ export default function AdminPage() {
 // ── Sidebar ────────────────────────────────────────────────────────────────────
 function Sidebar({ view, setView }: { view: string; setView: (v: any) => void }) {
   async function signOut() {
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
     window.location.href = "/admin/login";
   }
   const navItem = (id: string, icon: React.ReactNode, label: string) => (
@@ -137,7 +137,7 @@ function DashboardView({ setView }: { setView: (v: any) => void }) {
   const [recent, setRecent] = useState<Property[]>([]);
 
   useEffect(() => {
-    supabase.from("properties").select("status").then(({ data }) => {
+    createClient().from("properties").select("status").then(({ data }) => {
       const all = data ?? [];
       setStats({
         total: all.length,
@@ -146,7 +146,7 @@ function DashboardView({ setView }: { setView: (v: any) => void }) {
         hidden: all.filter(p => ["hidden", "draft"].includes(p.status)).length,
       });
     });
-    supabase.from("properties").select("*")
+    createClient().from("properties").select("*")
       .order("created_at", { ascending: false }).limit(5)
       .then(({ data }) => setRecent(data ?? []));
   }, []);
@@ -227,7 +227,7 @@ function ListingsView() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
+    const { data } = await createClient().from("properties").select("*").order("created_at", { ascending: false });
     setProperties(data ?? []);
     setLoading(false);
   }
@@ -236,13 +236,13 @@ function ListingsView() {
 
   async function toggleVisibility(p: Property) {
     const next = p.status === "active" ? "hidden" : "active";
-    await supabase.from("properties").update({ status: next }).eq("id", p.id);
+    await createClient().from("properties").update({ status: next }).eq("id", p.id);
     load();
   }
 
   async function deleteProperty(id: string) {
     if (!confirm("Delete this listing permanently?")) return;
-    await supabase.from("properties").delete().eq("id", id);
+    await createClient().from("properties").delete().eq("id", id);
     load();
   }
 
@@ -390,9 +390,9 @@ function AddPropertyView({ onSuccess }: { onSuccess: () => void }) {
     for (const file of files) {
       const ext = file.name.split(".").pop();
       const path = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from("property-images").upload(path, file);
+      const { error } = await createClient().storage.from("property-images").upload(path, file);
       if (!error) {
-        const { data: { publicUrl } } = supabase.storage.from("property-images").getPublicUrl(path);
+        const { data: { publicUrl } } = createClient().storage.from("property-images").getPublicUrl(path);
         uploaded.push(publicUrl);
       }
     }
@@ -407,7 +407,7 @@ function AddPropertyView({ onSuccess }: { onSuccess: () => void }) {
     const fd = new FormData(e.currentTarget);
     const validImages = images.filter(Boolean);
 
-    const { error } = await supabase.from("properties").insert({
+    const { error } = await createClient().from("properties").insert({
       title: fd.get("title") as string,
       description: fd.get("description") as string,
       price: Number(fd.get("price")),

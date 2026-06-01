@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from "react";
 // 1. CHANGED THIS IMPORT TO USE THE BROWSER CLIENT FACTORY FUNCTION
 import { createClient } from "@/lib/supabase/client"; 

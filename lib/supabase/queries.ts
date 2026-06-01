@@ -12,7 +12,7 @@ export async function getProperties(filters: PropertyFilters = {}): Promise<Prop
 
   if (filters.status) {
     query = query.eq('status', filters.status);
-  } else {
+  } else if (!filters.admin) {
     query = query.eq('status', 'active');
   }
 
@@ -37,7 +37,17 @@ export async function getProperties(filters: PropertyFilters = {}): Promise<Prop
     );
   }
 
-  const { data, error } = await query;
+  let { data, error } = await query;
+
+  if (error) {
+    let fallback = supabase.from('listings').select('*').order('created_at', { ascending: false });
+    if (filters.status) fallback = fallback.eq('status', filters.status);
+    else if (!filters.admin) fallback = fallback.eq('status', 'active');
+    const result = await fallback;
+    data = result.data;
+    error = result.error;
+  }
+
   if (error) throw error;
   return (data ?? []).map(normalizeProperty);
 }
@@ -45,13 +55,19 @@ export async function getProperties(filters: PropertyFilters = {}): Promise<Prop
 export async function getPropertyById(id: string): Promise<Property | null> {
   // Added await here 👇
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('properties')
     .select('*')
     .eq('id', id)
     .single();
-  
-  if (error) return null;
+
+  if (error) {
+    const fallback = await supabase.from('listings').select('*').eq('id', id).single();
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  if (error || !data) return null;
   
   // Increment views (fire and forget)
   supabase.from('properties').update({ views: (data.views ?? 0) + 1 }).eq('id', id);
