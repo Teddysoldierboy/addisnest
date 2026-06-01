@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import type { Property, PropertyFilters } from '@/lib/types';
 
 export async function getProperties(filters: PropertyFilters = {}): Promise<Property[]> {
-  const supabase = createClient();
+  // Added await here 👇
+  const supabase = await createClient();
   
   let query = supabase
     .from('properties')
@@ -42,7 +43,8 @@ export async function getProperties(filters: PropertyFilters = {}): Promise<Prop
 }
 
 export async function getPropertyById(id: string): Promise<Property | null> {
-  const supabase = createClient();
+  // Added await here 👇
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('properties')
     .select('*')
@@ -58,7 +60,8 @@ export async function getPropertyById(id: string): Promise<Property | null> {
 }
 
 export async function getSimilarProperties(property: Property, limit = 3): Promise<Property[]> {
-  const supabase = createClient();
+  // Added await here 👇
+  const supabase = await createClient();
   const { data } = await supabase
     .from('properties')
     .select('*')
@@ -71,7 +74,8 @@ export async function getSimilarProperties(property: Property, limit = 3): Promi
 }
 
 export async function getAdminStats() {
-  const supabase = createClient();
+  // Added await here 👇
+  const supabase = await createClient();
   const [{ count: total }, { count: active }, { count: rented }, { count: sold }] = await Promise.all([
     supabase.from('properties').select('*', { count: 'exact', head: true }),
     supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'active'),

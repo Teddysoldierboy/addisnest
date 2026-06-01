@@ -18,8 +18,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // The setAll method can be safely ignored when called 
-            // from a Server Component that cannot mutate cookies directly.
+            // The `setAll` method can be ignored if
+            // middleware is handling session refreshes
           }
         },
       },
