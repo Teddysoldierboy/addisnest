@@ -2,10 +2,13 @@ export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Bed, Bath, Ruler, Phone, MessageCircle, Eye, ArrowLeft } from 'lucide-react';
+import { MapPin, Bed, Bath, Ruler, Eye, ArrowLeft } from 'lucide-react';
 import { getPropertyById, getSimilarProperties } from '@/lib/supabase/queries';
 import { PropertyGallery } from '@/components/property/PropertyGallery';
 import { PropertyCard } from '@/components/property/PropertyCard';
+import { PropertyDetailActions } from '@/components/property/PropertyDetailActions';
+import { AmenityBadges } from '@/components/property/AmenityBadges';
+import { PropertyMapSection } from '@/components/property/PropertyMapSection';
 import { formatPrice } from '@/lib/utils';
 
 interface Props {
@@ -62,6 +65,8 @@ export default async function PropertyPage({ params }: Props) {
             </div>
           </div>
 
+          <AmenityBadges amenities={property.amenities} limit={0} className="gap-2" />
+
           <div className="grid grid-cols-3 gap-4">
             {property.bedrooms != null && (
               <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-neutral-100">
@@ -93,6 +98,8 @@ export default async function PropertyPage({ params }: Props) {
             </div>
           )}
 
+          <PropertyMapSection property={property} />
+
           <div className="flex items-center gap-1.5 text-neutral-400 text-xs">
             <Eye className="w-3.5 h-3.5" />
             <span>{property.views ?? 0} views</span>
@@ -112,27 +119,7 @@ export default async function PropertyPage({ params }: Props) {
                 {property.listing_type === 'rent' ? 'Monthly rent' : 'Asking price'}
               </p>
 
-              <div className="mt-6 space-y-3">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp Agent
-                </a>
-
-                {property.agent_phone && (
-                  <a
-                    href={`tel:${property.agent_phone}`}
-                    className="flex items-center justify-center gap-2 w-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                    Call Agent
-                  </a>
-                )}
-              </div>
+              <PropertyDetailActions property={property} whatsappUrl={whatsappUrl} />
             </div>
 
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100">

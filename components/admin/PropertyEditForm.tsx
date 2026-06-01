@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Trash2, Plus, GripVertical } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { AMENITY_OPTIONS } from '@/lib/constants';
 import type { Property } from '@/lib/types';
 
 interface Props {
@@ -20,6 +22,7 @@ export function PropertyEditForm({ property }: Props) {
     property.images?.length ? property.images : property.image_url ? [property.image_url] : ['']
   );
   const [uploading, setUploading] = useState(false);
+  const [amenities, setAmenities] = useState<string[]>(property.amenities ?? []);
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,6 +53,9 @@ export function PropertyEditForm({ property }: Props) {
       images: validImages,
       image_url: validImages[0] ?? null,
       featured_image: validImages[0] ?? null,
+      amenities,
+      latitude: data.get('latitude') ? Number(data.get('latitude')) : property.latitude ?? null,
+      longitude: data.get('longitude') ? Number(data.get('longitude')) : property.longitude ?? null,
       updated_at: new Date().toISOString(),
     };
 
@@ -180,14 +186,17 @@ export function PropertyEditForm({ property }: Props) {
 
       {/* Images */}
       <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-neutral-900">Images</h2>
-          <label className="cursor-pointer text-xs bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium px-3 py-1.5 rounded-lg transition-colors">
-            {uploading ? 'Uploading...' : '↑ Upload Files'}
-            <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} disabled={uploading} />
-          </label>
-        </div>
-        <p className="text-xs text-neutral-400">First image is the cover photo. You can also paste image URLs below.</p>
+        <h2 className="font-semibold text-neutral-900">Images</h2>
+        <ImageUploadField
+          storagePrefix={property.id}
+          aspectMode="4:3"
+          onUploaded={(url) => setImages((prev) => [...prev.filter(Boolean), url])}
+        />
+        <label className="cursor-pointer text-xs bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium px-3 py-1.5 rounded-lg transition-colors inline-block">
+          {uploading ? 'Uploading raw files…' : '↑ Upload without crop (legacy)'}
+          <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} disabled={uploading} />
+        </label>
+        <p className="text-xs text-neutral-400">First image is the cover. Prefer crop upload for consistent 4:3 marketing shots.</p>
 
         <div className="space-y-2">
           {images.map((img, i) => (
@@ -210,6 +219,49 @@ export function PropertyEditForm({ property }: Props) {
           className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1">
           <Plus className="w-3.5 h-3.5" /> Add image URL
         </button>
+      </section>
+
+      <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-3">
+        <h2 className="font-semibold text-neutral-900">Amenities</h2>
+        <div className="flex flex-wrap gap-2">
+          {AMENITY_OPTIONS.map((tag) => {
+            const active = amenities.includes(tag);
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() =>
+                  setAmenities((prev) =>
+                    active ? prev.filter((a) => a !== tag) : [...prev, tag]
+                  )
+                }
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  active
+                    ? 'bg-amber-500 text-white border-amber-500'
+                    : 'bg-white text-neutral-600 border-neutral-200 hover:border-amber-300'
+                }`}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-4">
+        <h2 className="font-semibold text-neutral-900">Map coordinates</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Latitude</label>
+            <input name="latitude" type="number" step="any" defaultValue={property.latitude ?? ''}
+              className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Longitude</label>
+            <input name="longitude" type="number" step="any" defaultValue={property.longitude ?? ''}
+              className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          </div>
+        </div>
       </section>
 
       {/* Agent Info */}

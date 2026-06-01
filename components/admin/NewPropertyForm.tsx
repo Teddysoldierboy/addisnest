@@ -4,13 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Trash2, Plus } from 'lucide-react';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { AMENITY_OPTIONS } from '@/lib/constants';
 
 export function NewPropertyForm() {
   const router = useRouter();
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [images, setImages] = useState<string[]>(['']);
+  const [images, setImages] = useState<string[]>([]);
+  const [amenities, setAmenities] = useState<string[]>([]);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,6 +41,9 @@ export function NewPropertyForm() {
       images: validImages,
       image_url: validImages[0] ?? null,
       featured_image: validImages[0] ?? null,
+      amenities,
+      latitude: data.get('latitude') ? Number(data.get('latitude')) : null,
+      longitude: data.get('longitude') ? Number(data.get('longitude')) : null,
     };
 
     const { error } = await supabase.from('properties').insert(insert);
@@ -117,27 +123,80 @@ export function NewPropertyForm() {
         </div>
       </section>
 
-      <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-3">
+      <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-4">
         <h2 className="font-semibold text-neutral-900">Images</h2>
+        <ImageUploadField
+          aspectMode="4:3"
+          onUploaded={(url) => setImages((prev) => [...prev.filter(Boolean), url])}
+        />
         {images.map((img, i) => (
           <div key={i} className="flex items-center gap-2">
             <span className="text-xs text-neutral-400 w-4">{i + 1}</span>
             <input
               value={img}
-              onChange={e => setImages(prev => prev.map((v, j) => j === i ? e.target.value : v))}
+              onChange={(e) => setImages((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))}
               placeholder="https://..."
               className="flex-1 border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
-            <button type="button" onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
-              className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-500 rounded-lg transition-colors">
+            <button
+              type="button"
+              onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
+              className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-500 rounded-lg transition-colors"
+            >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         ))}
-        <button type="button" onClick={() => setImages(prev => [...prev, ''])}
-          className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1">
-          <Plus className="w-3.5 h-3.5" /> Add image
+        <button
+          type="button"
+          onClick={() => setImages((prev) => [...prev, ''])}
+          className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+        >
+          <Plus className="w-3.5 h-3.5" /> Add image URL manually
         </button>
+      </section>
+
+      <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-3">
+        <h2 className="font-semibold text-neutral-900">Amenities</h2>
+        <div className="flex flex-wrap gap-2">
+          {AMENITY_OPTIONS.map((tag) => {
+            const active = amenities.includes(tag);
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() =>
+                  setAmenities((prev) =>
+                    active ? prev.filter((a) => a !== tag) : [...prev, tag]
+                  )
+                }
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  active
+                    ? 'bg-amber-500 text-white border-amber-500'
+                    : 'bg-white text-neutral-600 border-neutral-200 hover:border-amber-300'
+                }`}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-4">
+        <h2 className="font-semibold text-neutral-900">Map coordinates (optional)</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Latitude</label>
+            <input name="latitude" type="number" step="any" placeholder="8.99"
+              className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Longitude</label>
+            <input name="longitude" type="number" step="any" placeholder="38.78"
+              className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          </div>
+        </div>
       </section>
 
       <section className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 space-y-4">

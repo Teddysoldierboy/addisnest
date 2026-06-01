@@ -19,6 +19,8 @@ export interface Property {
   is_featured?: boolean;
   views?: number;
   amenities?: string[] | null;
+  latitude?: number | null;
+  longitude?: number | null;
   agent_name?: string | null;
   agent_phone?: string | null;
   agent_whatsapp?: string | null;
@@ -36,4 +38,26 @@ export interface PropertyFilters {
   search?: string;
   /** When true, do not restrict to active listings (admin views). */
   admin?: boolean;
+}
+
+export interface Lead {
+  id?: string;
+  property_id: string;
+  name: string;
+  phone: string;
+  tour_date?: string | null;
+  message?: string | null;
+  created_at?: string;
+}
+
+export interface AdminStats {
+  total: number;
+  active: number;
+  rented: number;
+  sold: number;
+  totalMonthlyRent: number;
+  totalSaleValue: number;
+  totalViews: number;
+  topViewed: { id: string; title: string; views: number }[];
+  statusBreakdown: { status: string; count: number }[];
 }

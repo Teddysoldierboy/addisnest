@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Bed, Bath, Ruler } from 'lucide-react';
 import type { Property } from '@/lib/types';
+import { AmenityBadges } from '@/components/property/AmenityBadges';
 import { cn, formatPrice } from '@/lib/utils';
 
 interface PropertyCardProps {
@@ -59,6 +60,8 @@ export function PropertyCard({ property, className }: PropertyCardProps) {
             <MapPin className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
             <p className="text-sm text-neutral-500 truncate">{property.location}</p>
           </div>
+
+          <AmenityBadges amenities={property.amenities} className="mt-2" limit={3} />
 
           {/* Specs */}
           {(property.bedrooms || property.bathrooms || property.area) && (

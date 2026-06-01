@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getAdminStats } from '@/lib/supabase/queries';
 import { Building2, TrendingUp, Home, Eye } from 'lucide-react';
+import { AdminAnalyticsPanel } from '@/components/admin/AdminAnalyticsPanel';
+import { SeedDatabaseButton } from '@/components/admin/SeedDatabaseButton';
+import { formatPrice } from '@/lib/utils';
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -25,10 +28,12 @@ export default async function AdminDashboard() {
   return (
     <div className="min-h-screen bg-neutral-50 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">AddisNest Admin</h1>
-            <p className="text-neutral-500 text-sm mt-1">Manage your property listings</p>
+            <p className="text-neutral-500 text-sm mt-1">
+              Portfolio value {formatPrice(stats.totalSaleValue)} · Rent pipeline {formatPrice(stats.totalMonthlyRent)}/mo
+            </p>
           </div>
           <Link
             href="/admin/listings/new"
@@ -36,6 +41,10 @@ export default async function AdminDashboard() {
           >
             + Add Property
           </Link>
+        </div>
+
+        <div className="mb-6">
+          <SeedDatabaseButton />
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -49,6 +58,8 @@ export default async function AdminDashboard() {
             </div>
           ))}
         </div>
+
+        <AdminAnalyticsPanel stats={stats} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
@@ -67,7 +78,7 @@ export default async function AdminDashboard() {
             <h3 className="font-semibold text-neutral-900 group-hover:text-amber-600 transition-colors">
               Add New Property →
             </h3>
-            <p className="text-sm text-neutral-500 mt-1">Create a new listing with full details and images</p>
+            <p className="text-sm text-neutral-500 mt-1">Create a listing with crop-to-upload imagery</p>
           </Link>
         </div>
       </div>
